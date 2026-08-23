@@ -5,6 +5,8 @@ import { getFeaturedProducts } from "@/lib/products";
 import { ProductCard } from "@/components/ProductCard";
 import { ProductImage } from "@/components/ProductImage";
 
+export const dynamic = "force-dynamic";
+
 export default async function HomePage({
   params,
 }: {

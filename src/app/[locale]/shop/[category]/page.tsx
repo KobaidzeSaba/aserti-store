@@ -6,6 +6,8 @@ import { getProductsByCategory } from "@/lib/products";
 import { ProductCard } from "@/components/ProductCard";
 import { ShopNav } from "@/components/ShopNav";
 
+export const dynamic = "force-dynamic";
+
 export default async function CategoryPage({
   params,
 }: {

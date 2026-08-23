@@ -11,6 +11,8 @@ import { ProductGallery } from "@/components/ProductGallery";
 import { ProductPurchase } from "@/components/ProductPurchase";
 import { ProductCard } from "@/components/ProductCard";
 
+export const dynamic = "force-dynamic";
+
 export default async function ProductPage({
   params,
 }: {
