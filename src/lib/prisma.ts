@@ -14,8 +14,23 @@ neonConfig.poolQueryViaFetch = true;
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
+// The Neon serverless driver authenticates over a proxied transport that can't
+// perform SCRAM channel binding, so a `channel_binding=require` parameter in the
+// URL (Neon includes it by default) causes "password authentication failed".
+// Strip it defensively so the exact same URL works for the serverless driver.
+function sanitizeConnectionString(url?: string): string | undefined {
+  if (!url) return url;
+  try {
+    const u = new URL(url);
+    u.searchParams.delete("channel_binding");
+    return u.toString();
+  } catch {
+    return url;
+  }
+}
+
 function createPrisma(): PrismaClient {
-  const connectionString = process.env.DATABASE_URL;
+  const connectionString = sanitizeConnectionString(process.env.DATABASE_URL);
   const pool = new Pool({ connectionString });
   const adapter = new PrismaNeon(pool);
   return new PrismaClient({
