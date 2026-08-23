@@ -8,6 +8,9 @@ import ws from "ws";
 // TCP to Neon can fail/time out) and wakes suspended computes instantly.
 // In Node it needs a WebSocket implementation.
 neonConfig.webSocketConstructor = ws;
+// Route one-shot queries over HTTPS fetch (fast, and avoids the WebSocket path
+// for the common read case); transactions still use the WebSocket connection.
+neonConfig.poolQueryViaFetch = true;
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
