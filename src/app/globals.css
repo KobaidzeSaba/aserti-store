@@ -1,0 +1,67 @@
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Noto+Sans:wght@300;400;500;600&family=Noto+Sans+Georgian:wght@300;400;500;600&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-serif: "Cormorant Garamond", "Noto Sans Georgian", Georgia, serif;
+  --font-sans: "Noto Sans", "Noto Sans Georgian", system-ui, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #0e0e10;
+  color: #d8d8dc;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+@layer components {
+  .container-x {
+    @apply mx-auto w-full max-w-6xl px-5 sm:px-8;
+  }
+
+  .btn-gold {
+    @apply inline-flex items-center justify-center rounded-sm bg-champagne px-6 py-3
+      text-sm font-medium uppercase tracking-luxe text-ink transition-colors
+      hover:bg-champagne-light disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .btn-outline {
+    @apply inline-flex items-center justify-center rounded-sm border border-silver-muted/40
+      px-6 py-3 text-sm font-medium uppercase tracking-luxe text-silver
+      transition-colors hover:border-champagne hover:text-champagne;
+  }
+
+  .heading-serif {
+    font-family: var(--font-serif);
+    @apply font-medium tracking-wide;
+  }
+
+  .field {
+    @apply w-full rounded-sm border border-silver-muted/25 bg-ink-soft px-4 py-3
+      text-silver placeholder:text-silver-muted/60 outline-none
+      focus:border-champagne;
+  }
+
+  .label {
+    @apply mb-1.5 block text-xs uppercase tracking-luxe text-silver-muted;
+  }
+}
+
+/* Thin, refined scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: #2a2a31;
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3a3a42;
+}

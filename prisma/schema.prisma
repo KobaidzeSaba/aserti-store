@@ -1,0 +1,94 @@
+// ASERTI STORE — data model
+// SQLite for local dev. For production, switch provider to "postgresql"
+// and point DATABASE_URL at your Postgres instance.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Postgres for both production and local dev (see DEPLOYMENT.md / DEPLOY_VERCEL.md).
+// DIRECT_URL is used for migrations; for providers with a single URL, set
+// DIRECT_URL to the same value as DATABASE_URL.
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Product {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  // Model codes from the ASERTI catalog, comma-separated (e.g. "101R1-1,101R1-2").
+  models    String
+  category  String // "rings" | "earrings" | "crosses"
+  material  String @default("925 Sterling Silver")
+  gem       String? // e.g. "Moissanite"
+  sizeInfo  String? // e.g. "S 17.5 / L 19.5" or "Adjustable"
+  weight    Float // grams
+  price     Float // in GEL
+  images    String   @default("") // comma-separated image paths
+
+  // Trilingual content (ka = Georgian, en = English, ru = Russian)
+  nameKa String
+  nameEn String
+  nameRu String
+  descKa String @default("")
+  descEn String @default("")
+  descRu String @default("")
+
+  featured  Boolean  @default(false)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  orderItems OrderItem[]
+}
+
+model Order {
+  id            String   @id @default(cuid())
+  // Short human-friendly reference shown to the customer (e.g. "AS-2X4K9P").
+  reference     String   @unique
+  status        String   @default("pending") // pending | paid | failed | shipped | cancelled
+  currency      String   @default("GEL")
+  subtotal      Float
+  shippingCost  Float    @default(0)
+  total         Float
+
+  // Customer
+  customerName  String
+  email         String
+  phone         String
+
+  // Shipping address
+  city          String
+  address       String
+  note          String?
+
+  // Payment
+  paymentProvider String? // "tbc" | "bog" | "sandbox"
+  paymentId       String? // provider-side payment/order id
+  paidAt          DateTime?
+
+  // Shipping / Quickshipper
+  shipmentId    String?
+  trackingCode  String?
+
+  locale        String   @default("ka")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  items OrderItem[]
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+
+  nameSnapshot String // product name at time of purchase (localized)
+  size         String? // chosen size, if any
+  unitPrice    Float
+  quantity     Int     @default(1)
+  lineTotal    Float
+}
