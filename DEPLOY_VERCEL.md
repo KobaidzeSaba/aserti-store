@@ -58,8 +58,7 @@ git push -u origin main
 
    | Name | Value |
    |------|-------|
-   | `DATABASE_URL` | *(Neon pooled string from Step 1)* |
-   | `DIRECT_URL` | *(Neon direct string from Step 1)* |
+   | `DATABASE_URL` | *(Neon pooled string from Step 1 — the one with `-pooler`)* |
    | `PAYMENTS_MODE` | `sandbox` |
    | `ADMIN_USERNAME` | `admin` |
    | `ADMIN_PASSWORD` | *(pick a strong password)* |

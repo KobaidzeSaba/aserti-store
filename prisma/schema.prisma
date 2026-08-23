@@ -7,12 +7,11 @@ generator client {
 }
 
 // Postgres for both production and local dev (see DEPLOYMENT.md / DEPLOY_VERCEL.md).
-// DIRECT_URL is used for migrations; for providers with a single URL, set
-// DIRECT_URL to the same value as DATABASE_URL.
+// Only DATABASE_URL is required. For heavy migration workloads behind a pooler
+// you may re-add `directUrl = env("DIRECT_URL")` and set that variable.
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model Product {
