@@ -3,7 +3,8 @@
 // and point DATABASE_URL at your Postgres instance.
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
 }
 
 // Postgres for both production and local dev (see DEPLOYMENT.md / DEPLOY_VERCEL.md).
