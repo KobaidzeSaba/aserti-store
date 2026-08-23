@@ -4,6 +4,7 @@ import { isLocale } from "@/i18n/config";
 import { prisma } from "@/lib/prisma";
 import { createOrder } from "@/lib/orders";
 import { getGateway, type PaymentProvider } from "@/lib/payments";
+import { getBaseUrl } from "@/lib/baseUrl";
 
 const schema = z.object({
   locale: z.string(),
@@ -26,13 +27,6 @@ const schema = z.object({
     )
     .min(1),
 });
-
-function baseUrl(req: NextRequest): string {
-  return (
-    process.env.NEXT_PUBLIC_BASE_URL?.replace(/\/$/, "") ||
-    req.nextUrl.origin
-  );
-}
 
 export async function POST(req: NextRequest) {
   let body: unknown;
@@ -58,7 +52,7 @@ export async function POST(req: NextRequest) {
   try {
     const { order } = await createOrder({ items, customer, locale });
 
-    const base = baseUrl(req);
+    const base = getBaseUrl(req);
     const returnUrl = `${base}/${locale}/order/${order.reference}`;
     const callbackUrl = `${base}/api/payments/${provider}/callback?ref=${order.reference}`;
 

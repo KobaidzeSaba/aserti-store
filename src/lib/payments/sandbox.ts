@@ -1,3 +1,4 @@
+import { getBaseUrl } from "../baseUrl";
 import type {
   CreatePaymentInput,
   CreatePaymentResult,
@@ -15,7 +16,7 @@ export const sandboxGateway: PaymentGateway = {
   provider: "sandbox",
 
   async createPayment(input: CreatePaymentInput): Promise<CreatePaymentResult> {
-    const base = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+    const base = getBaseUrl();
     const url = new URL(`/${input.locale}/sandbox/pay`, base);
     url.searchParams.set("ref", input.reference);
     return {
