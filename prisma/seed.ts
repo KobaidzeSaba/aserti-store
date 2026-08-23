@@ -18,7 +18,10 @@ async function main() {
         weight: p.weight,
         price: p.price,
         featured: p.featured ?? false,
-        images: (p.images ?? []).join(","),
+        images: (p.images && p.images.length
+          ? p.images
+          : [`/products/${p.slug}.jpg`]
+        ).join(","),
         nameKa: p.name.ka,
         nameEn: p.name.en,
         nameRu: p.name.ru,
@@ -36,7 +39,10 @@ async function main() {
         weight: p.weight,
         price: p.price,
         featured: p.featured ?? false,
-        images: (p.images ?? []).join(","),
+        images: (p.images && p.images.length
+          ? p.images
+          : [`/products/${p.slug}.jpg`]
+        ).join(","),
         nameKa: p.name.ka,
         nameEn: p.name.en,
         nameRu: p.name.ru,
