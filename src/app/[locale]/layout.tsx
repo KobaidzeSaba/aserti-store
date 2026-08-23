@@ -1,9 +1,17 @@
+import localFont from "next/font/local";
 import { notFound } from "next/navigation";
 import { isLocale, locales, type Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 import { CartProvider } from "@/components/CartProvider";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+
+// ALK Sanet — the brand's Georgian typeface, self-hosted and used site-wide.
+const alkSanet = localFont({
+  src: "../../fonts/alk-sanet.ttf",
+  variable: "--font-alk",
+  display: "swap",
+});
 
 export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
@@ -21,7 +29,7 @@ export default function LocaleLayout({
   const dict = getDictionary(locale);
 
   return (
-    <html lang={locale}>
+    <html lang={locale} className={alkSanet.variable}>
       <body className="flex min-h-screen flex-col">
         <CartProvider>
           <Header locale={locale} dict={dict} />

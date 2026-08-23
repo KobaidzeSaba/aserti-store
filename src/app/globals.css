@@ -5,8 +5,9 @@
 @tailwind utilities;
 
 :root {
-  --font-serif: "Cormorant Garamond", "Noto Sans Georgian", Georgia, serif;
-  --font-sans: "Noto Sans", "Noto Sans Georgian", system-ui, sans-serif;
+  /* ALK Sanet (brand font) leads; fallbacks cover any glyphs it lacks (e.g. Cyrillic). */
+  --font-serif: var(--font-alk), "Cormorant Garamond", "Noto Sans Georgian", Georgia, serif;
+  --font-sans: var(--font-alk), "Noto Sans", "Noto Sans Georgian", system-ui, sans-serif;
 }
 
 html {
