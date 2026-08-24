@@ -1,0 +1,31 @@
+{
+  "$schema": "https://aserti.store/schemas/product-import.v1.json",
+  "formatVersion": "1.0",
+  "description": "Online Store product import format. One canonical product per array entry. `isActive` MUST NOT be true when `price` is null — the store importer rejects the whole file otherwise. `categorySlugs` must reference categories that already exist in the store; the importer must never be offered a new category to create.",
+  "products": [
+    {
+      "externalId": "PIM-EXAMPLE-001",
+      "barcode": "4860129132282",
+      "barcodeScheme": "fina_2026",
+      "translations": {
+        "ka": { "name": "მაგალითი პროდუქტი", "description": "ქართული აღწერა." },
+        "en": { "name": "Example Product", "description": "English description." },
+        "ru": { "name": "Пример товара", "description": "Русское описание." }
+      },
+      "brand": "Example",
+      "categorySlugs": ["toys-construction"],
+      "price": 49.0,
+      "currency": "GEL",
+      "stockQuantity": 12,
+      "isActive": true,
+      "images": [
+        {
+          "url": "https://res.cloudinary.com/demo/image/upload/axiom-smart-products/example-hero.jpg",
+          "role": "hero",
+          "sortOrder": 0,
+          "alt": { "ka": "მთავარი ფოტო", "en": "Hero photo", "ru": "Главное фото" }
+        }
+      ]
+    }
+  ]
+}

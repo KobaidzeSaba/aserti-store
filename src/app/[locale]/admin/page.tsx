@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import type { Locale } from "@/i18n/config";
 import { prisma } from "@/lib/prisma";
 import { formatPrice } from "@/lib/money";
@@ -38,6 +39,12 @@ export default async function AdminPage({
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="flex items-center gap-4">
           <h1 className="heading-serif text-3xl text-silver">ASERTI · Orders</h1>
+          <Link
+            href={`/${params.locale}/admin/pim`}
+            className="text-xs uppercase tracking-luxe text-silver-muted hover:text-champagne"
+          >
+            Product Master
+          </Link>
           <form action={logout}>
             <input type="hidden" name="locale" value={params.locale} />
             <button

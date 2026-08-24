@@ -43,6 +43,150 @@ model Product {
   orderItems OrderItem[]
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Product Master (PIM) models. Tables are prefixed `pim_` and are independent
+// of the storefront `Product` model above. See src/lib/pim/* for the logic that
+// operates on these; domain types in src/lib/pim/types.ts mirror these shapes.
+// The single invariant: `productId` is the only join key; external barcodes are
+// per-scheme rows in PimProductCode, never a global primary key.
+// ─────────────────────────────────────────────────────────────────────────────
+
+model StaffUser {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  displayName  String
+  role         String   @default("staff") // staff | admin
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  @@map("pim_staff_user")
+}
+
+model PimProduct {
+  productId    String   @id @default(cuid())
+  nameKa       String
+  nameEn       String   @default("")
+  nameRu       String   @default("")
+  descKa       String   @default("")
+  descEn       String   @default("")
+  descRu       String   @default("")
+  brand        String?
+  status       String   @default("draft") // draft | active | discontinued
+  categorySlug String?
+  ageLabel     String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  codes    PimProductCode[]
+  fina     PimFinaSync[]
+  images   PimImage[]
+  listings PimChannelListing[]
+
+  @@index([status])
+  @@index([categorySlug])
+  @@map("pim_product")
+}
+
+model PimProductCode {
+  id        String   @id @default(cuid())
+  productId String
+  product   PimProduct @relation(fields: [productId], references: [productId], onDelete: Cascade)
+  scheme    String // fina_2025 | fina_2026 | ean13 | ...
+  code      String
+  validFrom DateTime @default(now())
+
+  // The same (scheme, code) must resolve to at most one product.
+  @@unique([scheme, code])
+  @@index([productId])
+  @@map("pim_product_code")
+}
+
+model PimFinaSync {
+  id        String   @id @default(cuid())
+  productId String
+  product   PimProduct @relation(fields: [productId], references: [productId], onDelete: Cascade)
+  location  String // საწყობი | გალერეა | მოლი
+  quantity  Int      @default(0)
+  price     Float
+  cost      Float?
+  syncedAt  DateTime @default(now())
+  sourceRow String
+
+  @@unique([productId, location])
+  @@index([productId])
+  @@map("pim_fina_sync")
+}
+
+model PimImage {
+  id             String   @id @default(cuid())
+  productId      String?
+  product        PimProduct? @relation(fields: [productId], references: [productId], onDelete: SetNull)
+  url            String
+  role           String   @default("hero") // hero | angle | packaging | lifestyle
+  sortOrder      Int      @default(0)
+  altKa          String   @default("")
+  altEn          String   @default("")
+  altRu          String   @default("")
+  isAiGenerated  Boolean  @default(false)
+  sourcePhotoRef String?
+  confirmedBy    String?
+  confirmedAt    DateTime?
+
+  @@index([productId])
+  @@map("pim_image")
+}
+
+model PimCategory {
+  slug   String @id
+  nameKa String
+  nameEn String @default("")
+  nameRu String @default("")
+
+  @@map("pim_category")
+}
+
+model PimChannelCategoryMap {
+  id              String @id @default(cuid())
+  channel         String
+  internalSlug    String
+  channelCategory String
+
+  @@unique([channel, internalSlug])
+  @@index([channel])
+  @@map("pim_channel_category_map")
+}
+
+model PimChannelListing {
+  id               String    @id @default(cuid())
+  productId        String
+  product          PimProduct @relation(fields: [productId], references: [productId], onDelete: Cascade)
+  channel          String
+  published        Boolean   @default(false)
+  priceOverride    Float?
+  lastExportAt     DateTime?
+  lastExportResult String?
+
+  @@unique([productId, channel])
+  @@index([channel])
+  @@map("pim_channel_listing")
+}
+
+model PimLinkAudit {
+  id             String    @id @default(cuid())
+  kind           String // image_to_product | fina_row_to_product
+  leftRef        String
+  rightProductId String?
+  score          Float     @default(0)
+  decision       String    @default("proposed") // proposed | accepted | rejected
+  decidedBy      String?
+  decidedAt      DateTime?
+  note           String?
+  createdAt      DateTime  @default(now())
+
+  @@index([kind, decision])
+  @@map("pim_link_audit")
+}
+
 model Order {
   id            String   @id @default(cuid())
   // Short human-friendly reference shown to the customer (e.g. "AS-2X4K9P").
