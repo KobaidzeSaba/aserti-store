@@ -7,20 +7,24 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // ASERTI palette: charcoal + champagne gold + silver
+        // ASERTI brandbook palette — strictly monochrome.
+        // Black (#000000), Mirror Silver (#252525), Industrial Gray
+        // (#808080 / #4D4D4D), Glass/White (#FFFFFF).
         ink: {
-          DEFAULT: "#0e0e10",
-          soft: "#17171b",
-          muted: "#24242b",
+          DEFAULT: "#000000", // black — absorbs light
+          soft: "#101010", // near-black surface
+          muted: "#252525", // mirror silver surface / hover
         },
+        // "champagne" name kept so existing utility classes map to the new
+        // monochrome accent (pure white / glass) — no gold anywhere.
         champagne: {
-          DEFAULT: "#c8a96a",
-          light: "#e3cd9c",
-          dark: "#a5854b",
+          DEFAULT: "#ffffff",
+          light: "#ffffff",
+          dark: "#9e9e9e",
         },
         silver: {
-          DEFAULT: "#d8d8dc",
-          muted: "#9a9aa2",
+          DEFAULT: "#ededed", // primary text (near-white)
+          muted: "#808080", // industrial gray — secondary text/borders
         },
       },
       fontFamily: {

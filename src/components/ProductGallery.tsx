@@ -34,7 +34,7 @@ export function ProductGallery({
           fill
           priority
           sizes="(min-width: 1024px) 50vw, 100vw"
-          className="object-cover"
+          className="object-cover grayscale"
         />
       </div>
 
@@ -58,7 +58,7 @@ export function ProductGallery({
                 alt=""
                 fill
                 sizes="80px"
-                className="object-cover"
+                className="object-cover grayscale"
               />
             </button>
           ))}

@@ -38,7 +38,7 @@ export function ProductMedia({
         fill
         sizes={sizes}
         priority={priority}
-        className="object-cover"
+        className="object-cover grayscale"
       />
     </div>
   );

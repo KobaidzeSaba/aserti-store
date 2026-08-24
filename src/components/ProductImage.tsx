@@ -21,7 +21,7 @@ export function ProductImage({
       className={className}
       style={{
         background:
-          "radial-gradient(120% 120% at 50% 20%, #1c1c22 0%, #101014 70%)",
+          "radial-gradient(120% 120% at 50% 20%, #252525 0%, #000000 70%)",
         ...style,
       }}
     >
@@ -33,9 +33,9 @@ export function ProductImage({
       >
         <defs>
           <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#e3cd9c" />
-            <stop offset="50%" stopColor="#c8a96a" />
-            <stop offset="100%" stopColor="#a5854b" />
+            <stop offset="0%" stopColor="#ffffff" />
+            <stop offset="50%" stopColor="#b8b8b8" />
+            <stop offset="100%" stopColor="#6a6a6a" />
           </linearGradient>
           <radialGradient id="shine" cx="0.5" cy="0.4" r="0.6">
             <stop offset="0%" stopColor="#ffffff" stopOpacity="0.9" />

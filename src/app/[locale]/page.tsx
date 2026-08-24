@@ -4,6 +4,7 @@ import { getDictionary } from "@/i18n/dictionaries";
 import { getFeaturedProducts } from "@/lib/products";
 import { ProductCard } from "@/components/ProductCard";
 import { ProductImage } from "@/components/ProductImage";
+import { ProductMedia } from "@/components/ProductMedia";
 
 export const dynamic = "force-dynamic";
 
@@ -31,7 +32,7 @@ export default async function HomePage({
           className="absolute inset-0 opacity-70"
           style={{
             background:
-              "radial-gradient(80% 60% at 70% 10%, rgba(200,169,106,0.18) 0%, rgba(14,14,16,0) 60%)",
+              "radial-gradient(80% 60% at 70% 10%, rgba(255,255,255,0.10) 0%, rgba(0,0,0,0) 60%)",
           }}
         />
         <div className="container-x relative grid gap-10 py-20 lg:grid-cols-2 lg:items-center lg:py-28">
@@ -53,16 +54,19 @@ export default async function HomePage({
           </div>
           <div className="relative mx-auto aspect-square w-full max-w-md">
             <div
-              className="absolute inset-0 rounded-full"
+              className="absolute -inset-4 rounded-full"
               style={{
                 background:
-                  "radial-gradient(circle at 50% 40%, rgba(200,169,106,0.25), rgba(14,14,16,0) 65%)",
+                  "radial-gradient(circle at 50% 40%, rgba(255,255,255,0.14), rgba(0,0,0,0) 65%)",
               }}
             />
-            <ProductImage
-              category="rings"
-              gem="Moissanite"
-              className="relative h-full w-full rounded-full"
+            <ProductMedia
+              category="crosses"
+              images={["/products/big-cross.jpg"]}
+              alt={dict.brand}
+              priority
+              sizes="(min-width: 1024px) 40vw, 90vw"
+              className="relative h-full w-full rounded-full border border-silver-muted/15"
             />
           </div>
         </div>

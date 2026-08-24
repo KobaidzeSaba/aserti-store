@@ -153,8 +153,8 @@ export function renderOrderConfirmation(order: EmailOrder, locale: Locale) {
         <table role="presentation" width="560" cellpadding="0" cellspacing="0"
                style="background:#ffffff;border:1px solid #e6e1d8;border-radius:6px;overflow:hidden;">
           <tr>
-            <td style="background:#0e0e10;padding:28px 32px;text-align:center;">
-              <div style="letter-spacing:8px;color:#c8a96a;font-size:22px;">ASERTI</div>
+            <td style="background:#000000;padding:28px 32px;text-align:center;">
+              <div style="letter-spacing:8px;color:#ffffff;font-size:22px;">ASERTI</div>
             </td>
           </tr>
           <tr><td style="padding:32px;">
@@ -177,7 +177,7 @@ export function renderOrderConfirmation(order: EmailOrder, locale: Locale) {
               <tr><td style="color:#4b4b52;font-size:14px;padding:2px 0;">${t.shipping}</td>
                   <td style="text-align:right;color:#0e0e10;font-size:14px;">${order.shippingCost === 0 ? t.free : money(order.shippingCost)}</td></tr>
               <tr><td style="color:#0e0e10;font-size:16px;padding:8px 0 0;font-weight:600;">${t.total}</td>
-                  <td style="text-align:right;color:#a5854b;font-size:16px;padding:8px 0 0;font-weight:600;">${money(order.total)}</td></tr>
+                  <td style="text-align:right;color:#000000;font-size:16px;padding:8px 0 0;font-weight:700;">${money(order.total)}</td></tr>
             </table>
 
             ${
