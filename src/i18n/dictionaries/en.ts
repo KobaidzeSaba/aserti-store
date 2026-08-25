@@ -1,6 +1,6 @@
 const en = {
   brand: "ASERTI",
-  tagline: "Sterling silver, considered.",
+  tagline: "Order in chaos.",
   nav: {
     shop: "Shop",
     rings: "Rings",
@@ -10,18 +10,18 @@ const en = {
     cart: "Cart",
   },
   home: {
-    heroKicker: "Handcrafted 925 silver",
-    heroTitle: "Quiet luxury in sterling silver",
+    heroKicker: "Conceptual silver · Tbilisi 2026",
+    heroTitle: "Order in Chaos",
     heroSubtitle:
-      "A focused collection of rings, earrings and crosses — 925 sterling silver, some set with moissanite.",
+      "Conceptual jewelry in pure silver — where strict geometric order meets wild natural stone. Brutal architecture, pure emotion.",
     heroCta: "Explore the collection",
     featured: "Featured pieces",
     categoriesTitle: "Shop by category",
-    valuesTitle: "Why ASERTI",
+    valuesTitle: "The visual code",
     values: [
-      { title: "925 Sterling Silver", body: "Every piece is solid, hallmarked 925 silver." },
-      { title: "Moissanite brilliance", body: "Select pieces set with lab-grown moissanite." },
-      { title: "Delivery across Georgia", body: "Fast courier shipping via Quickshipper." },
+      { title: "Mirror & raw stone", body: "The contrast of perfectly polished mirror silver against rough, unprocessed stone." },
+      { title: "Inverted stones", body: "Our signature stones, set point-up — order asserted within chaos." },
+      { title: "Pure silver, Tbilisi", body: "Unique pieces, handcrafted in pure silver." },
     ],
   },
   product: {
@@ -96,8 +96,8 @@ const en = {
     retry: "Try payment again",
   },
   about: {
-    title: "About ASERTI",
-    body: "ASERTI is a Tbilisi-based jewelry house working exclusively in 925 sterling silver. Our pieces are designed to be worn every day — architectural, tactile, and quietly luminous. Selected designs are set with moissanite for lasting brilliance.",
+    title: "Order in Chaos. 101",
+    body: "ASERTI is a conceptual jewelry house founded in Tbilisi in 2026, uniting brutal architecture with pure emotion. Our philosophy — “Order in Chaos. 101” — is where strict geometric order meets wild natural force. We craft unique pieces in pure silver, defined by the contrast between perfectly polished mirror metal and the rough texture of raw stone, and by our signature inverted stones set point-up. This is jewelry not for banal status, but as a manifesto of inner freedom — the balance between the chaos of the modern megapolis and absolute inner peace.",
   },
   footer: {
     rights: "All rights reserved.",

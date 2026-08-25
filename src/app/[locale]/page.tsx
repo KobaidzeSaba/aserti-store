@@ -1,10 +1,10 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 import { getFeaturedProducts } from "@/lib/products";
 import { ProductCard } from "@/components/ProductCard";
 import { ProductImage } from "@/components/ProductImage";
-import { ProductMedia } from "@/components/ProductMedia";
 
 export const dynamic = "force-dynamic";
 
@@ -52,21 +52,14 @@ export default async function HomePage({
               </Link>
             </div>
           </div>
-          <div className="relative mx-auto aspect-square w-full max-w-md">
-            <div
-              className="absolute -inset-4 rounded-full"
-              style={{
-                background:
-                  "radial-gradient(circle at 50% 40%, rgba(255,255,255,0.14), rgba(0,0,0,0) 65%)",
-              }}
-            />
-            <ProductMedia
-              category="crosses"
-              images={["/products/big-cross.jpg"]}
-              alt={dict.brand}
+          <div className="relative mx-auto aspect-square w-full max-w-md overflow-hidden border border-silver-muted/15">
+            <Image
+              src="/brand/fusion.jpg"
+              alt="ASERTI — the fusion of raw stone and mirror silver"
+              fill
               priority
               sizes="(min-width: 1024px) 40vw, 90vw"
-              className="relative h-full w-full rounded-full border border-silver-muted/15"
+              className="object-cover"
             />
           </div>
         </div>
