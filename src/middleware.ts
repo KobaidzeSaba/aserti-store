@@ -6,11 +6,16 @@ const PUBLIC_FILE = /\.(.*)$/;
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Skip Next internals, API routes and static files.
+  // Skip Next internals, API routes, metadata routes and static files.
   if (
     pathname.startsWith("/_next") ||
     pathname.startsWith("/api") ||
     pathname.startsWith("/favicon") ||
+    pathname.startsWith("/icon") ||
+    pathname === "/opengraph-image" ||
+    pathname === "/twitter-image" ||
+    pathname === "/sitemap.xml" ||
+    pathname === "/robots.txt" ||
     PUBLIC_FILE.test(pathname)
   ) {
     return NextResponse.next();
@@ -32,5 +37,7 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next|api|.*\\..*).*)"],
+  matcher: [
+    "/((?!_next|api|opengraph-image|twitter-image|icon|sitemap|robots|.*\\..*).*)",
+  ],
 };
