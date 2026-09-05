@@ -1,4 +1,4 @@
-export type PaymentProvider = "tbc" | "bog" | "sandbox";
+export type PaymentProvider = "flitt" | "bog" | "sandbox";
 
 export type PaymentStatus = "pending" | "paid" | "failed";
 
@@ -33,8 +33,12 @@ export type CreatePaymentResult = {
 export interface PaymentGateway {
   readonly provider: PaymentProvider;
   createPayment(input: CreatePaymentInput): Promise<CreatePaymentResult>;
-  /** Query the provider for the authoritative payment status. */
-  getStatus(providerPaymentId: string): Promise<PaymentStatus>;
+  /**
+   * Query the provider for the authoritative payment status.
+   * @param providerPaymentId provider-side id (used by BOG's receipt endpoint)
+   * @param reference our order reference (used by Flitt's status-by-order_id)
+   */
+  getStatus(providerPaymentId: string, reference: string): Promise<PaymentStatus>;
 }
 
 export class PaymentConfigError extends Error {}

@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { isSandboxMode } from "@/lib/payments";
+import { prisma } from "@/lib/prisma";
 import { markOrderFailed, markOrderPaid } from "@/lib/orders";
 
 /**
- * Completes a simulated (sandbox) payment. Only available when not in live mode.
+ * Completes a simulated (sandbox) payment.
+ *
+ * SECURITY: only orders that used the in-app mock gateway
+ * (paymentProvider === "sandbox") can be completed here. Orders paid through a
+ * real provider (Flitt / BOG) are rejected, so this endpoint can never mark a
+ * real-money order paid.
  */
 export async function POST(req: NextRequest) {
-  if (!isSandboxMode()) {
-    return NextResponse.json({ error: "Sandbox disabled" }, { status: 403 });
-  }
-
   let body: { ref?: string; outcome?: string };
   try {
     body = await req.json();
@@ -19,6 +20,12 @@ export async function POST(req: NextRequest) {
 
   const { ref, outcome } = body;
   if (!ref) return NextResponse.json({ error: "Missing ref" }, { status: 400 });
+
+  const order = await prisma.order.findUnique({ where: { reference: ref } });
+  if (!order) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (order.paymentProvider !== "sandbox") {
+    return NextResponse.json({ error: "Not a sandbox order" }, { status: 403 });
+  }
 
   try {
     if (outcome === "success") {

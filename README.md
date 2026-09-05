@@ -13,7 +13,7 @@ required. Drop real credentials into `.env` and flip `PAYMENTS_MODE=live` to go 
 - 🌐 **i18n** — Georgian, English, Russian with a language switcher and locale-prefixed routes (`/ka`, `/en`, `/ru`).
 - 🖼️ **Photography** — real product photos from `/public/products` with a thumbnail gallery, falling back to category vector art (see [public/products/README.md](public/products/README.md)).
 - 🛒 **Cart & checkout** — client cart (localStorage) + server-side order creation with price re-validation.
-- 💳 **Payments** — TBC (TPay) and BOG e-commerce gateways behind a common interface, with a sandbox fallback.
+- 💳 **Payments** — **Flitt** (real, validated) and **Bank of Georgia** e-commerce gateways behind a common interface, with a sandbox fallback when a provider has no credentials.
 - 📦 **Shipping** — Quickshipper shipment created automatically when an order is paid; tracking code stored on the order.
 - ✉️ **Email** — trilingual order-confirmation emails via SMTP (logged to console when SMTP isn't configured).
 - 🔐 **Admin** — password-protected order dashboard at `/{locale}/admin` with a signed session cookie.
@@ -52,7 +52,7 @@ Edit `.env`:
 ```env
 PAYMENTS_MODE="live"
 
-TBC_CLIENT_ID=...     TBC_CLIENT_SECRET=...   TBC_APIKEY=...   TBC_MERCHANT_ID=...
+FLITT_MERCHANT_ID=1549901   FLITT_SECRET_KEY=test   # public Flitt test merchant
 BOG_CLIENT_ID=...     BOG_CLIENT_SECRET=...
 
 QUICKSHIPPER_API_KEY=...   QUICKSHIPPER_SECRET=...
@@ -98,7 +98,7 @@ src/
     auth.ts               # admin session cookie (HMAC-signed)
     email.ts              # nodemailer transport (SMTP or dev console)
     emails/templates.ts   # trilingual order-confirmation email
-    payments/             # tbc.ts, bog.ts, sandbox.ts, index.ts (gateway selector)
+    payments/             # flitt.ts, bog.ts, sandbox.ts, index.ts (gateway selector)
     shipping/quickshipper.ts
   components/              # Header, Footer, Cart, Checkout, ProductCard, ProductGallery, …
   app/

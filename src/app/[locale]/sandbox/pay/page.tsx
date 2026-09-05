@@ -2,7 +2,6 @@ import { notFound, redirect } from "next/navigation";
 import type { Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 import { prisma } from "@/lib/prisma";
-import { isSandboxMode } from "@/lib/payments";
 import { SandboxPay } from "@/components/SandboxPay";
 
 export const dynamic = "force-dynamic";
@@ -14,14 +13,14 @@ export default async function SandboxPayPage({
   params: { locale: Locale };
   searchParams: { ref?: string };
 }) {
-  if (!isSandboxMode()) notFound();
-
   const dict = getDictionary(params.locale);
   const ref = searchParams.ref;
   if (!ref) notFound();
 
   const order = await prisma.order.findUnique({ where: { reference: ref } });
   if (!order) notFound();
+  // Mock pay page is only valid for orders that used the in-app sandbox gateway.
+  if (order.paymentProvider !== "sandbox") notFound();
 
   // If already finalised, skip the mock page.
   if (order.status !== "pending") {

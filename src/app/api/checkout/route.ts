@@ -8,7 +8,7 @@ import { getBaseUrl } from "@/lib/baseUrl";
 
 const schema = z.object({
   locale: z.string(),
-  provider: z.enum(["tbc", "bog"]),
+  provider: z.enum(["flitt", "bog"]),
   customer: z.object({
     customerName: z.string().min(1).max(120),
     email: z.string().email().max(160),

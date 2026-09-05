@@ -71,7 +71,7 @@ const ka: Dictionary = {
     address: "მისამართი",
     note: "შენიშვნა (არასავალდებულო)",
     payment: "გადახდის მეთოდი",
-    payTbc: "ბარათით — TBC ბანკი",
+    payFlitt: "ბარათით — Flitt",
     payBog: "ბარათით — საქართველოს ბანკი",
     orderSummary: "შეკვეთის შეჯამება",
     subtotal: "ქვეჯამი",

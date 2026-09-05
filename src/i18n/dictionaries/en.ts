@@ -69,7 +69,7 @@ const en = {
     address: "Address",
     note: "Order note (optional)",
     payment: "Payment method",
-    payTbc: "Card via TBC Bank",
+    payFlitt: "Card via Flitt",
     payBog: "Card via Bank of Georgia",
     orderSummary: "Order summary",
     subtotal: "Subtotal",

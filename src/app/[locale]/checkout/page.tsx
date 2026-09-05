@@ -1,7 +1,9 @@
 import type { Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
-import { isSandboxMode } from "@/lib/payments";
+import { isMockProvider } from "@/lib/payments";
 import { CheckoutForm } from "@/components/CheckoutForm";
+
+export const dynamic = "force-dynamic";
 
 export default function CheckoutPage({
   params,
@@ -16,7 +18,7 @@ export default function CheckoutPage({
         <CheckoutForm
           locale={params.locale}
           dict={dict}
-          sandbox={isSandboxMode()}
+          mock={{ flitt: isMockProvider("flitt"), bog: isMockProvider("bog") }}
         />
       </div>
     </div>

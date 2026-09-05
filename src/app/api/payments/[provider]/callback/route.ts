@@ -14,7 +14,7 @@ async function handle(
   params: { provider: string },
 ): Promise<NextResponse> {
   const provider = params.provider;
-  if (provider !== "tbc" && provider !== "bog") {
+  if (provider !== "flitt" && provider !== "bog") {
     return NextResponse.json({ error: "Unknown provider" }, { status: 404 });
   }
 
@@ -36,7 +36,7 @@ async function handle(
   try {
     if (!order.paymentId) throw new Error("Order has no provider payment id");
     const gateway = getGateway(provider as PaymentProvider);
-    const status = await gateway.getStatus(order.paymentId);
+    const status = await gateway.getStatus(order.paymentId, order.reference);
 
     if (status === "paid") {
       await markOrderPaid(ref, order.paymentId);

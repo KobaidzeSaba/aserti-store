@@ -4,7 +4,7 @@ import type { Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 import { prisma } from "@/lib/prisma";
 import { formatPrice } from "@/lib/money";
-import { getGateway, isSandboxMode, type PaymentProvider } from "@/lib/payments";
+import { getGateway, type PaymentProvider } from "@/lib/payments";
 import { markOrderFailed, markOrderPaid } from "@/lib/orders";
 
 export const dynamic = "force-dynamic";
@@ -26,14 +26,13 @@ export default async function OrderPage({
   // Live mode: if the customer returned before the webhook landed, re-query
   // the provider so this page reflects the authoritative status.
   if (
-    !isSandboxMode() &&
     order.status === "pending" &&
     order.paymentId &&
-    (order.paymentProvider === "tbc" || order.paymentProvider === "bog")
+    (order.paymentProvider === "flitt" || order.paymentProvider === "bog")
   ) {
     try {
       const gateway = getGateway(order.paymentProvider as PaymentProvider);
-      const status = await gateway.getStatus(order.paymentId);
+      const status = await gateway.getStatus(order.paymentId, order.reference);
       if (status === "paid") await markOrderPaid(reference, order.paymentId);
       else if (status === "failed") await markOrderFailed(reference);
       order = await prisma.order.findUnique({

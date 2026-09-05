@@ -71,7 +71,7 @@ const ru: Dictionary = {
     address: "Адрес",
     note: "Примечание (необязательно)",
     payment: "Способ оплаты",
-    payTbc: "Картой — TBC Bank",
+    payFlitt: "Картой — Flitt",
     payBog: "Картой — Bank of Georgia",
     orderSummary: "Ваш заказ",
     subtotal: "Подытог",

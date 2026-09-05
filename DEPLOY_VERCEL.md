@@ -84,9 +84,9 @@ When the deploy finishes, Vercel gives you a URL like
 `https://aserti-store-xxxx.vercel.app`.
 
 - **Storefront:** open the URL — it redirects to `/ka`. Switch languages (ka / en / ru) top-right.
-- **Buy something:** add an item → **Cart** → **Checkout** → fill details → choose TBC or BOG → **Pay**.
-  You'll land on the **sandbox payment page** — click *Payment received*. The order is
-  marked paid and gets a Quickshipper tracking code.
+- **Buy something:** add an item → **Cart** → **Checkout** → fill details → choose Flitt or BOG → **Pay**.
+  Without payment credentials you'll land on the **sandbox payment page** — click *Payment
+  received*. The order is marked paid and gets a Quickshipper tracking code.
 - **Admin:** go to `/en/admin`, sign in with the `ADMIN_USERNAME` / `ADMIN_PASSWORD`
   you set. You'll see the order, revenue, and tracking code.
 
@@ -94,21 +94,32 @@ That's a fully working store you can share and click through.
 
 ---
 
-## Later: switch on real payments & email
+## Real payments — Flitt (works now with the public TEST merchant)
 
-When you have TBC / BOG / Quickshipper merchant credentials and want real charges:
+The Flitt integration is real. To turn on **real test-mode** Flitt checkout on your
+deployed site (no mock page), add these env vars in Vercel → **Settings → Environment
+Variables** (all environments) and redeploy:
 
-1. In Vercel → **Settings → Environment Variables**, set `PAYMENTS_MODE=live` and add:
-   `TBC_CLIENT_ID`, `TBC_CLIENT_SECRET`, `TBC_APIKEY`, `TBC_MERCHANT_ID`,
-   `BOG_CLIENT_ID`, `BOG_CLIENT_SECRET`,
-   `QUICKSHIPPER_API_KEY`, `QUICKSHIPPER_SECRET` (+ sender fields),
-   and SMTP: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM`.
-2. Set `NEXT_PUBLIC_BASE_URL` to your final domain.
-3. In each bank's dashboard, register the callback URLs:
-   - `https://YOUR-DOMAIN/api/payments/tbc/callback`
-   - `https://YOUR-DOMAIN/api/payments/bog/callback`
-4. **Redeploy** (Vercel → Deployments → ⋯ → Redeploy).
-5. Verify the exact TBC/BOG/Quickshipper endpoints against your merchant docs first
+```
+FLITT_MERCHANT_ID = 1549901
+FLITT_SECRET_KEY  = test
+```
+
+Now the "Card via Flitt" option sends the customer to Flitt's real hosted checkout
+(test cards, no real money). Flitt calls back to `/api/payments/flitt/callback`, and we
+re-query Flitt for the authoritative status before marking the order paid. For **live
+charges**, swap in your own Flitt live `FLITT_MERCHANT_ID` / `FLITT_SECRET_KEY`.
+
+**Bank of Georgia** activates the same way once you have merchant credentials
+(`BOG_CLIENT_ID`, `BOG_CLIENT_SECRET`). Until then, BOG falls back to the sandbox page.
+
+Also for production: set `NEXT_PUBLIC_BASE_URL` to your final domain, add SMTP
+(`SMTP_HOST/PORT/USER/PASS/FROM`) for order emails and `QUICKSHIPPER_API_KEY`/`SECRET`
+(+ `PAYMENTS_MODE=live`) for live shipping, and register the callback URL
+`https://YOUR-DOMAIN/api/payments/flitt/callback` (and `/bog/callback`) in each dashboard.
+
+<!-- verify endpoints note below -->
+5. Verify the exact Flitt/BOG/Quickshipper endpoints against your merchant docs first
    (they're in `src/lib/payments/*` and `src/lib/shipping/quickshipper.ts`), and test a
    small real payment.
 

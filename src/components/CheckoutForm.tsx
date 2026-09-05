@@ -7,19 +7,20 @@ import type { Dictionary } from "@/i18n/dictionaries";
 import { formatPrice, shippingFor } from "@/lib/money";
 import { useCart } from "./CartProvider";
 
-type Provider = "tbc" | "bog";
+type Provider = "flitt" | "bog";
 
 export function CheckoutForm({
   locale,
   dict,
-  sandbox,
+  mock,
 }: {
   locale: Locale;
   dict: Dictionary;
-  sandbox: boolean;
+  /** Whether each provider will use the in-app sandbox mock (no real creds). */
+  mock: Record<Provider, boolean>;
 }) {
   const { items, subtotal, clear, ready } = useCart();
-  const [provider, setProvider] = useState<Provider>("tbc");
+  const [provider, setProvider] = useState<Provider>("flitt");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
@@ -178,7 +179,7 @@ export function CheckoutForm({
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
             {(
               [
-                { key: "tbc", label: dict.checkout.payTbc },
+                { key: "flitt", label: dict.checkout.payFlitt },
                 { key: "bog", label: dict.checkout.payBog },
               ] as { key: Provider; label: string }[]
             ).map((p) => (
@@ -202,7 +203,7 @@ export function CheckoutForm({
               </label>
             ))}
           </div>
-          {sandbox && (
+          {mock[provider] && (
             <p className="mt-4 rounded-sm border border-champagne/30 bg-champagne/5 px-4 py-3 text-xs text-champagne">
               {dict.checkout.sandboxNote}
             </p>
