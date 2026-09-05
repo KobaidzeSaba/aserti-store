@@ -162,6 +162,8 @@ export function CheckoutForm({
               <AddressAutocomplete
                 className="field"
                 value={form.address}
+                verified={coords !== null}
+                verifiedLabel={dict.checkout.locationVerified}
                 onChange={(v) => {
                   update("address", v);
                   setCoords(null); // manual edit invalidates the geocode

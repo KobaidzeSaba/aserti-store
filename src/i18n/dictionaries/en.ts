@@ -87,6 +87,7 @@ const en = {
     invalidEmail: "Enter a valid email",
     sandboxNote:
       "Sandbox mode: no real payment is taken. You'll be sent to a simulated payment page.",
+    locationVerified: "Location verified for delivery",
   },
   confirmation: {
     thankYou: "Thank you for your order",
