@@ -200,6 +200,88 @@ export function renderOrderConfirmation(order: EmailOrder, locale: Locale) {
   return { subject: t.subject(order.reference), text, html };
 }
 
+type ShippedStrings = {
+  subject: (ref: string) => string;
+  heading: string;
+  greeting: (name: string) => string;
+  body: string;
+  tracking: string;
+  shipTo: string;
+  signature: string;
+};
+
+const shippedStrings: Record<Locale, ShippedStrings> = {
+  en: {
+    subject: (ref) => `ASERTI — order ${ref} shipped`,
+    heading: "Your order is on its way",
+    greeting: (name) => `Dear ${name},`,
+    body: "Your parcel has been handed to Quickshipper and is now on its way to you.",
+    tracking: "Tracking code",
+    shipTo: "Ship to",
+    signature: "With care,\nASERTI STORE · Tbilisi",
+  },
+  ka: {
+    subject: (ref) => `ASERTI — შეკვეთა ${ref} გამოიგზავნა`,
+    heading: "თქვენი შეკვეთა გზაშია",
+    greeting: (name) => `ძვირფასო ${name},`,
+    body: "თქვენი ამანათი გადაეცა Quickshipper-ს და უკვე მოგზაურობს თქვენსკენ.",
+    tracking: "თრექინგ კოდი",
+    shipTo: "მისამართი",
+    signature: "პატივისცემით,\nASERTI STORE · თბილისი",
+  },
+  ru: {
+    subject: (ref) => `ASERTI — заказ ${ref} отправлен`,
+    heading: "Ваш заказ в пути",
+    greeting: (name) => `Уважаемый(ая) ${name},`,
+    body: "Ваша посылка передана в Quickshipper и уже направляется к вам.",
+    tracking: "Трек-код",
+    shipTo: "Адрес",
+    signature: "С уважением,\nASERTI STORE · Тбилиси",
+  },
+};
+
+export function renderOrderShipped(order: EmailOrder, locale: Locale) {
+  const t = shippedStrings[locale] ?? shippedStrings.en;
+
+  const text = [
+    t.heading,
+    "",
+    t.greeting(order.customerName),
+    t.body,
+    "",
+    order.trackingCode ? `${t.tracking}: ${order.trackingCode}` : "",
+    `${t.shipTo}: ${order.customerName}, ${order.city}, ${order.address}`,
+    "",
+    t.signature,
+  ].join("\n");
+
+  const html = `
+  <div style="background:#f4f2ee;padding:32px 0;font-family:Georgia,'Times New Roman',serif;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
+      <table role="presentation" width="560" cellpadding="0" cellspacing="0"
+             style="background:#ffffff;border:1px solid #e6e1d8;border-radius:6px;overflow:hidden;">
+        <tr><td style="background:#000000;padding:28px 32px;text-align:center;">
+          <div style="letter-spacing:8px;color:#ffffff;font-size:22px;">ASERTI</div>
+        </td></tr>
+        <tr><td style="padding:32px;">
+          <h1 style="margin:0 0 16px;font-size:24px;color:#0e0e10;font-weight:500;">${t.heading}</h1>
+          <p style="margin:0 0 6px;color:#4b4b52;font-size:15px;">${t.greeting(escapeHtml(order.customerName))}</p>
+          <p style="margin:0 0 20px;color:#4b4b52;font-size:15px;line-height:1.5;">${t.body}</p>
+          ${
+            order.trackingCode
+              ? `<p style="margin:0 0 6px;font-size:15px;color:#4b4b52;">${t.tracking}: <strong style="color:#0e0e10;">${escapeHtml(order.trackingCode)}</strong></p>`
+              : ""
+          }
+          <p style="margin:0;font-size:14px;color:#4b4b52;">${t.shipTo}: ${escapeHtml(order.customerName)}, ${escapeHtml(order.city)}, ${escapeHtml(order.address)}</p>
+          <p style="margin:24px 0 0;font-size:14px;color:#9a9aa2;white-space:pre-line;">${t.signature}</p>
+        </td></tr>
+      </table>
+    </td></tr></table>
+  </div>`;
+
+  return { subject: t.subject(order.reference), text, html };
+}
+
 function escapeHtml(s: string): string {
   return s
     .replace(/&/g, "&amp;")

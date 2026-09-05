@@ -47,6 +47,11 @@ const ka: Dictionary = {
     title: "კოლექცია",
     all: "ყველა",
     empty: "ამ კატეგორიაში ჯერ არაა პროდუქტი.",
+    sort: "დალაგება",
+    sortDefault: "რჩეული",
+    sortPriceAsc: "ფასი: ზრდადობით",
+    sortPriceDesc: "ფასი: კლებადობით",
+    moissaniteOnly: "მხოლოდ მოისანიტი",
   },
   cart: {
     title: "თქვენი კალათა",

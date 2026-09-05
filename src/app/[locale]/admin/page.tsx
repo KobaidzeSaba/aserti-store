@@ -3,7 +3,7 @@ import type { Locale } from "@/i18n/config";
 import { prisma } from "@/lib/prisma";
 import { formatPrice } from "@/lib/money";
 import { isAuthenticated } from "@/lib/auth";
-import { logout } from "./actions";
+import { logout, markShipped } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -76,6 +76,7 @@ export default async function AdminPage({
               <th className="px-4 py-3">Pay</th>
               <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3">Tracking</th>
+              <th className="px-4 py-3">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-silver-muted/10">
@@ -104,11 +105,29 @@ export default async function AdminPage({
                 <td className="px-4 py-3 text-silver-muted">
                   {o.trackingCode || "—"}
                 </td>
+                <td className="px-4 py-3">
+                  {o.status === "paid" ? (
+                    <form action={markShipped}>
+                      <input type="hidden" name="locale" value={params.locale} />
+                      <input type="hidden" name="reference" value={o.reference} />
+                      <button
+                        type="submit"
+                        className="whitespace-nowrap rounded-none border border-silver-muted/50 px-3 py-1.5 text-xs uppercase tracking-luxe text-silver transition-colors hover:border-champagne hover:text-champagne"
+                      >
+                        Mark shipped
+                      </button>
+                    </form>
+                  ) : o.status === "shipped" ? (
+                    <span className="text-xs text-silver-muted">shipped ✓</span>
+                  ) : (
+                    <span className="text-silver-muted">—</span>
+                  )}
+                </td>
               </tr>
             ))}
             {orders.length === 0 && (
               <tr>
-                <td colSpan={8} className="px-4 py-10 text-center text-silver-muted">
+                <td colSpan={9} className="px-4 py-10 text-center text-silver-muted">
                   No orders yet.
                 </td>
               </tr>

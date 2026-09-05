@@ -3,7 +3,7 @@ import { prisma } from "./prisma";
 import { localizeProduct } from "./products";
 import { shippingFor } from "./money";
 import { createShipment } from "./shipping/quickshipper";
-import { sendOrderConfirmationEmail } from "./email";
+import { sendOrderConfirmationEmail, sendOrderShippedEmail } from "./email";
 
 export type CheckoutItemInput = {
   slug: string;
@@ -185,4 +185,45 @@ export async function markOrderFailed(reference: string) {
     where: { reference },
     data: { status: "failed" },
   });
+}
+
+/**
+ * Mark a paid order as shipped and email the customer their tracking code.
+ * Only a "paid" order can transition to "shipped" (idempotent).
+ */
+export async function markOrderShipped(reference: string) {
+  const order = await prisma.order.findUnique({
+    where: { reference },
+    include: { items: true },
+  });
+  if (!order) throw new Error(`Order not found: ${reference}`);
+  if (order.status !== "paid") return order; // must be paid; ignore otherwise
+
+  const updated = await prisma.order.update({
+    where: { reference },
+    data: { status: "shipped" },
+  });
+
+  await sendOrderShippedEmail(
+    {
+      reference: updated.reference,
+      email: updated.email,
+      customerName: updated.customerName,
+      city: updated.city,
+      address: updated.address,
+      subtotal: updated.subtotal,
+      shippingCost: updated.shippingCost,
+      total: updated.total,
+      trackingCode: updated.trackingCode,
+      items: order.items.map((it) => ({
+        nameSnapshot: it.nameSnapshot,
+        size: it.size,
+        quantity: it.quantity,
+        lineTotal: it.lineTotal,
+      })),
+    },
+    updated.locale,
+  );
+
+  return updated;
 }

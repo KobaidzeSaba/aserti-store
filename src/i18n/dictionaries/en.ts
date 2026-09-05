@@ -45,6 +45,11 @@ const en = {
     title: "The collection",
     all: "All",
     empty: "No products in this category yet.",
+    sort: "Sort",
+    sortDefault: "Featured",
+    sortPriceAsc: "Price: low to high",
+    sortPriceDesc: "Price: high to low",
+    moissaniteOnly: "Moissanite only",
   },
   cart: {
     title: "Your cart",

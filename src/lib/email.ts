@@ -3,6 +3,7 @@ import type { Locale } from "@/i18n/config";
 import { isLocale } from "@/i18n/config";
 import {
   renderOrderConfirmation,
+  renderOrderShipped,
   type EmailOrder,
 } from "./emails/templates";
 
@@ -42,16 +43,14 @@ function fromAddress(): string {
   return process.env.SMTP_FROM || "ASERTI STORE <no-reply@aserti.store>";
 }
 
-export async function sendOrderConfirmationEmail(
+async function send(
   order: EmailOrder,
-  localeInput: string,
+  subject: string,
+  html: string,
+  text: string,
+  bcc?: string,
 ): Promise<void> {
-  const locale: Locale = isLocale(localeInput) ? localeInput : "en";
-  const { subject, html, text } = renderOrderConfirmation(order, locale);
   const { transport, live } = getTransport();
-
-  const bcc = process.env.STORE_NOTIFICATION_EMAIL || undefined;
-
   try {
     const info = await transport.sendMail({
       from: fromAddress(),
@@ -61,7 +60,6 @@ export async function sendOrderConfirmationEmail(
       text,
       html,
     });
-
     if (!live) {
       console.log(
         `[email] (dev, not sent) order ${order.reference} → ${order.email}\n` +
@@ -74,4 +72,22 @@ export async function sendOrderConfirmationEmail(
     // Never let email failure break order fulfilment.
     console.error(`[email] failed for order ${order.reference}:`, err);
   }
+}
+
+export async function sendOrderConfirmationEmail(
+  order: EmailOrder,
+  localeInput: string,
+): Promise<void> {
+  const locale: Locale = isLocale(localeInput) ? localeInput : "en";
+  const { subject, html, text } = renderOrderConfirmation(order, locale);
+  await send(order, subject, html, text, process.env.STORE_NOTIFICATION_EMAIL || undefined);
+}
+
+export async function sendOrderShippedEmail(
+  order: EmailOrder,
+  localeInput: string,
+): Promise<void> {
+  const locale: Locale = isLocale(localeInput) ? localeInput : "en";
+  const { subject, html, text } = renderOrderShipped(order, locale);
+  await send(order, subject, html, text);
 }

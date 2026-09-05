@@ -47,6 +47,11 @@ const ru: Dictionary = {
     title: "Коллекция",
     all: "Все",
     empty: "В этой категории пока нет товаров.",
+    sort: "Сортировка",
+    sortDefault: "Избранное",
+    sortPriceAsc: "Цена: по возрастанию",
+    sortPriceDesc: "Цена: по убыванию",
+    moissaniteOnly: "Только муассанит",
   },
   cart: {
     title: "Ваша корзина",

@@ -5,19 +5,25 @@ import { CATEGORIES } from "@/data/catalog";
 import { getProductsByCategory } from "@/lib/products";
 import { ProductCard } from "@/components/ProductCard";
 import { ShopNav } from "@/components/ShopNav";
+import { ShopControls, applyShopQuery } from "@/components/ShopControls";
 
 export const dynamic = "force-dynamic";
 
 export default async function CategoryPage({
   params,
+  searchParams,
 }: {
   params: { locale: Locale; category: string };
+  searchParams: { sort?: string; gem?: string };
 }) {
   const { locale, category } = params;
   if (!(CATEGORIES as readonly string[]).includes(category)) notFound();
 
   const dict = getDictionary(locale);
-  const products = await getProductsByCategory(locale, category);
+  const products = applyShopQuery(
+    await getProductsByCategory(locale, category),
+    searchParams,
+  );
 
   const title =
     category === "rings"
@@ -29,8 +35,9 @@ export default async function CategoryPage({
   return (
     <div className="container-x py-14">
       <h1 className="heading-serif text-4xl text-silver">{title}</h1>
-      <div className="mt-8">
+      <div className="mt-8 flex flex-wrap items-center justify-between gap-6">
         <ShopNav locale={locale} dict={dict} active={category} />
+        <ShopControls dict={dict} />
       </div>
 
       {products.length === 0 ? (
