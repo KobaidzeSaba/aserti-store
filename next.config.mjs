@@ -32,7 +32,7 @@ const nextConfig = {
       "font-src 'self' https://fonts.gstatic.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "script-src 'self' 'unsafe-inline' https://maps.googleapis.com https://maps.gstatic.com",
-      "connect-src 'self' https://maps.googleapis.com https://maps.gstatic.com",
+      "connect-src 'self' https://maps.googleapis.com https://maps.gstatic.com https://photon.komoot.io",
     ].join("; ");
 
     // Baseline security headers applied to every response.
