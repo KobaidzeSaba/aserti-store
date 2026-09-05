@@ -62,6 +62,9 @@ model Order {
   city          String
   address       String
   note          String?
+  // Geocoded coordinates (from Google Places) for precise courier delivery.
+  latitude      Float?
+  longitude     Float?
 
   // Payment
   paymentProvider String? // "tbc" | "bog" | "sandbox"

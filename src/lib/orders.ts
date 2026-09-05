@@ -18,6 +18,8 @@ export type CustomerInput = {
   city: string;
   address: string;
   note?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
 };
 
 const REF_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -92,6 +94,8 @@ export async function createOrder(params: {
         city: customer.city,
         address: customer.address,
         note: customer.note || null,
+        latitude: customer.latitude ?? null,
+        longitude: customer.longitude ?? null,
         locale,
         items: {
           create: lineData.map((l) => ({
@@ -137,6 +141,8 @@ export async function markOrderPaid(
     phone: order.phone,
     city: order.city,
     address: order.address,
+    latitude: order.latitude,
+    longitude: order.longitude,
     note: order.note,
     declaredValue: order.total,
     weightGrams: totalWeight,

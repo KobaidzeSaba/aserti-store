@@ -1,11 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries";
 import { formatPrice, shippingFor } from "@/lib/money";
+import { loadGoogleMaps } from "@/lib/googleMaps";
 import { useCart } from "./CartProvider";
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 type Provider = "flitt" | "bog";
 
@@ -31,6 +34,8 @@ export function CheckoutForm({
     address: "",
     note: "",
   });
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const addressRef = useRef<HTMLInputElement>(null);
 
   const shipping = useMemo(() => shippingFor(subtotal), [subtotal]);
   const total = subtotal + shipping;
@@ -38,6 +43,45 @@ export function CheckoutForm({
   function update(field: keyof typeof form, value: string) {
     setForm((f) => ({ ...f, [field]: value }));
   }
+
+  // Google Places address autocomplete on the address field (delivery
+  // automation). Fills street + city and captures precise lat/long for the
+  // courier. No-op when NEXT_PUBLIC_GOOGLE_MAPS_API_KEY is not set.
+  useEffect(() => {
+    let ac: any;
+    let google: any;
+    loadGoogleMaps().then((g: any) => {
+      google = g;
+      if (!g || !addressRef.current) return;
+      ac = new g.maps.places.Autocomplete(addressRef.current, {
+        fields: ["address_components", "geometry", "formatted_address"],
+        componentRestrictions: { country: "ge" },
+      });
+      ac.addListener("place_changed", () => {
+        const place = ac.getPlace();
+        const comps: any[] = place.address_components || [];
+        const get = (type: string) =>
+          comps.find((c) => c.types.includes(type))?.long_name || "";
+        const street = [get("route"), get("street_number")]
+          .filter(Boolean)
+          .join(" ");
+        const city =
+          get("locality") ||
+          get("administrative_area_level_1") ||
+          get("postal_town");
+        const loc = place.geometry?.location;
+        setForm((f) => ({
+          ...f,
+          address: street || place.formatted_address || f.address,
+          city: city || f.city,
+        }));
+        if (loc) setCoords({ lat: loc.lat(), lng: loc.lng() });
+      });
+    });
+    return () => {
+      if (ac && google) google.maps.event.clearInstanceListeners(ac);
+    };
+  }, []);
 
   function validate(): string | null {
     if (!form.customerName.trim()) return dict.checkout.required;
@@ -63,7 +107,11 @@ export function CheckoutForm({
         body: JSON.stringify({
           locale,
           provider,
-          customer: form,
+          customer: {
+            ...form,
+            latitude: coords?.lat ?? null,
+            longitude: coords?.lng ?? null,
+          },
           items: items.map((i) => ({
             slug: i.slug,
             size: i.size ?? null,
@@ -154,6 +202,7 @@ export function CheckoutForm({
             <div>
               <label className="label">{dict.checkout.address}</label>
               <input
+                ref={addressRef}
                 className="field"
                 value={form.address}
                 onChange={(e) => update("address", e.target.value)}

@@ -16,6 +16,8 @@ const schema = z.object({
     city: z.string().min(1).max(80),
     address: z.string().min(1).max(240),
     note: z.string().max(500).optional().nullable(),
+    latitude: z.number().min(-90).max(90).optional().nullable(),
+    longitude: z.number().min(-180).max(180).optional().nullable(),
   }),
   items: z
     .array(
