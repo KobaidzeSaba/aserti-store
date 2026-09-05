@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 import { getAllProducts } from "@/lib/products";
@@ -23,7 +24,9 @@ export default async function ShopPage({
       <h1 className="heading-serif text-4xl text-silver">{dict.shop.title}</h1>
       <div className="mt-8 flex flex-wrap items-center justify-between gap-6">
         <ShopNav locale={locale} dict={dict} active="all" />
-        <ShopControls dict={dict} />
+        <Suspense fallback={null}>
+          <ShopControls dict={dict} />
+        </Suspense>
       </div>
 
       {products.length === 0 ? (
