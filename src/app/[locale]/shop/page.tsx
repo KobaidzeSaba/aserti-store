@@ -4,7 +4,8 @@ import { getDictionary } from "@/i18n/dictionaries";
 import { getAllProducts } from "@/lib/products";
 import { ProductCard } from "@/components/ProductCard";
 import { ShopNav } from "@/components/ShopNav";
-import { ShopControls, applyShopQuery } from "@/components/ShopControls";
+import { ShopControls } from "@/components/ShopControls";
+import { applyShopQuery } from "@/lib/shopQuery";
 
 export const dynamic = "force-dynamic";
 
