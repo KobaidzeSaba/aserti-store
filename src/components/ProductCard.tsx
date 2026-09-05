@@ -16,16 +16,16 @@ export function ProductCard({
       href={`/${locale}/product/${product.slug}`}
       className="group block"
     >
-      <div className="relative aspect-square overflow-hidden rounded-sm border border-silver-muted/10">
+      <div className="relative aspect-square overflow-hidden rounded-none border border-silver-muted/10 transition-colors duration-300 group-hover:border-silver-muted/40">
         <ProductMedia
           category={product.category}
           gem={product.gem}
           images={product.images}
           alt={product.name}
-          className="h-full w-full transition-transform duration-500 group-hover:scale-105"
+          className="h-full w-full transition-transform duration-700 group-hover:scale-105"
         />
         {product.gem && (
-          <span className="absolute left-3 top-3 rounded-full border border-champagne/40 bg-ink/60 px-2.5 py-1 text-[10px] uppercase tracking-luxe text-champagne">
+          <span className="absolute left-3 top-3 rounded-none border border-champagne/40 bg-ink/60 px-2.5 py-1 text-[10px] uppercase tracking-luxe text-champagne">
             {product.gem}
           </span>
         )}
