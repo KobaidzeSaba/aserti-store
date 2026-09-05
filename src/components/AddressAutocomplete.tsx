@@ -94,10 +94,12 @@ export function AddressAutocomplete({
     }
     debounce.current = setTimeout(async () => {
       try {
-        // Bias toward Georgia (Tbilisi) and prefer GE results.
+        // Restrict to Georgia: bounding box (minLon,minLat,maxLon,maxLat) +
+        // strict country filter, biased to Tbilisi. Non-Georgian results are
+        // never shown.
         const url =
           `https://photon.komoot.io/api/?q=${encodeURIComponent(v)}` +
-          `&lang=en&limit=5&lat=41.72&lon=44.79`;
+          `&lang=en&limit=6&lat=41.72&lon=44.79&bbox=39.9,41.0,46.8,43.7`;
         const res = await fetch(url);
         const data = await res.json();
         const feats: any[] = data.features || [];
@@ -106,7 +108,7 @@ export function AddressAutocomplete({
             f.properties?.countrycode === "GE" ||
             f.properties?.country === "Georgia",
         );
-        setSuggestions(ge.length ? ge : feats);
+        setSuggestions(ge);
         setOpen(true);
       } catch {
         setSuggestions([]);
