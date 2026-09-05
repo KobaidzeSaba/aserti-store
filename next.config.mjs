@@ -18,11 +18,29 @@ const nextConfig = {
     remotePatterns: [],
   },
   async headers() {
+    // Content-Security-Policy. 'unsafe-inline' is required for Next.js's inline
+    // bootstrap scripts and the JSON-LD block (no nonce pipeline here); the
+    // remaining directives still meaningfully constrain sources. Google Fonts
+    // hosts are allow-listed for the Noto fallback faces.
+    const csp = [
+      "default-src 'self'",
+      "base-uri 'self'",
+      "object-src 'none'",
+      "frame-ancestors 'none'",
+      "form-action 'self'",
+      "img-src 'self' data: blob:",
+      "font-src 'self' https://fonts.gstatic.com",
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      "script-src 'self' 'unsafe-inline'",
+      "connect-src 'self'",
+    ].join("; ");
+
     // Baseline security headers applied to every response.
     return [
       {
         source: "/:path*",
         headers: [
+          { key: "Content-Security-Policy", value: csp },
           { key: "X-Frame-Options", value: "DENY" },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },

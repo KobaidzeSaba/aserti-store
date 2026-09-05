@@ -1,8 +1,10 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
-import { formatPrice } from "@/lib/money";
+import { formatPrice, CURRENCY } from "@/lib/money";
+import { getBaseUrl } from "@/lib/baseUrl";
 import {
   getProductBySlug,
   getProductsByCategory,
@@ -12,6 +14,32 @@ import { ProductPurchase } from "@/components/ProductPurchase";
 import { ProductCard } from "@/components/ProductCard";
 
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { locale: Locale; slug: string };
+}): Promise<Metadata> {
+  const product = await getProductBySlug(params.locale, params.slug);
+  if (!product) return { title: "Not found" };
+  const image = product.images[0];
+  return {
+    title: product.name,
+    description: product.description,
+    openGraph: {
+      title: `${product.name} · ASERTI`,
+      description: product.description,
+      type: "website",
+      images: image ? [{ url: image, alt: product.name }] : undefined,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: product.name,
+      description: product.description,
+      images: image ? [image] : undefined,
+    },
+  };
+}
 
 export default async function ProductPage({
   params,
@@ -40,8 +68,32 @@ export default async function ProductPage({
     },
   ];
 
+  const base = getBaseUrl();
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: product.description,
+    image: product.images.map((img) => `${base}${img}`),
+    sku: product.models.join(", "),
+    category: product.category,
+    material: product.material,
+    brand: { "@type": "Brand", name: "ASERTI" },
+    offers: {
+      "@type": "Offer",
+      price: product.price,
+      priceCurrency: CURRENCY,
+      availability: "https://schema.org/InStock",
+      url: `${base}/${locale}/product/${slug}`,
+    },
+  };
+
   return (
     <div className="container-x py-12">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <Link
         href={`/${locale}/shop`}
         className="text-xs uppercase tracking-luxe text-silver-muted hover:text-champagne"

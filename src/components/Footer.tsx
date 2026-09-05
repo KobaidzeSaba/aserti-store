@@ -23,6 +23,7 @@ export function Footer({ locale, dict }: { locale: Locale; dict: Dictionary }) {
             <li><Link href={`${base}/shop/earrings`} className="hover:text-champagne">{dict.nav.earrings}</Link></li>
             <li><Link href={`${base}/shop/crosses`} className="hover:text-champagne">{dict.nav.crosses}</Link></li>
             <li><Link href={`${base}/about`} className="hover:text-champagne">{dict.nav.about}</Link></li>
+            <li><Link href={`${base}/track`} className="hover:text-champagne">{dict.track.link}</Link></li>
           </ul>
         </div>
 

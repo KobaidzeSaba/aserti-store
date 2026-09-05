@@ -100,6 +100,15 @@ const en = {
     backHome: "Back to home",
     retry: "Try payment again",
   },
+  track: {
+    title: "Track your order",
+    subtitle: "Enter your order reference and the email you used at checkout.",
+    reference: "Order reference",
+    email: "Email",
+    submit: "Find my order",
+    notFound: "No order found with that reference and email.",
+    link: "Track order",
+  },
   about: {
     title: "Order in Chaos. 101",
     body: "ASERTI is a conceptual jewelry house founded in Tbilisi in 2026, uniting brutal architecture with pure emotion. Our philosophy — “Order in Chaos. 101” — is where strict geometric order meets wild natural force. We craft unique pieces in pure silver, defined by the contrast between perfectly polished mirror metal and the rough texture of raw stone, and by our signature inverted stones set point-up. This is jewelry not for banal status, but as a manifesto of inner freedom — the balance between the chaos of the modern megapolis and absolute inner peace.",
