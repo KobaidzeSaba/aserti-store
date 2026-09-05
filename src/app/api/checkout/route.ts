@@ -82,9 +82,12 @@ export async function POST(req: NextRequest) {
       redirectUrl: payment.redirectUrl,
     });
   } catch (err) {
+    // Log details server-side; return a generic message so internal errors
+    // (DB, provider, stack details) are never disclosed to the client.
     console.error("Checkout error:", err);
-    const message =
-      err instanceof Error ? err.message : "Checkout failed. Please try again.";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json(
+      { error: "Checkout failed. Please try again." },
+      { status: 500 },
+    );
   }
 }

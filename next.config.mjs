@@ -12,10 +12,32 @@ const nextConfig = {
     ],
   },
   images: {
-    // Allow remote product images if you later host them on a CDN.
-    remotePatterns: [
-      { protocol: "https", hostname: "**" },
-    ],
+    // All images are served from /public. No remote hosts are allowed, so the
+    // image optimizer can't be abused as an open proxy for arbitrary URLs.
+    // To use a CDN later, add its exact hostname here.
+    remotePatterns: [],
+  },
+  async headers() {
+    // Baseline security headers applied to every response.
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "X-DNS-Prefetch-Control", value: "off" },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=(), payment=()",
+          },
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains; preload",
+          },
+        ],
+      },
+    ];
   },
 };
 

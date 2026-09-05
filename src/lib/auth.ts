@@ -4,12 +4,16 @@ import { cookies } from "next/headers";
 export const SESSION_COOKIE = "aserti_admin";
 const SESSION_TTL_MS = 1000 * 60 * 60 * 12; // 12 hours
 
+/** The configured signing secret, or null if the operator set none. */
+function configuredSecret(): string | null {
+  return process.env.ADMIN_SESSION_SECRET || process.env.ADMIN_PASSWORD || null;
+}
+
 function secret(): string {
-  return (
-    process.env.ADMIN_SESSION_SECRET ||
-    process.env.ADMIN_PASSWORD ||
-    "aserti-dev-secret-change-me"
-  );
+  // The dev fallback is only ever used for local signing; isAuthenticated()
+  // refuses to accept cookies when no real secret is configured, so a token
+  // signed with this fallback can never authenticate in a real deployment.
+  return configuredSecret() ?? "aserti-dev-secret-change-me";
 }
 
 function sign(value: string): string {
@@ -47,6 +51,9 @@ function verifySessionToken(token: string | undefined): boolean {
 
 /** True when the current request carries a valid admin session cookie. */
 export function isAuthenticated(): boolean {
+  // Fail closed: without a configured secret, reject everything (prevents a
+  // cookie forged with the public dev fallback from granting admin access).
+  if (!configuredSecret()) return false;
   const token = cookies().get(SESSION_COOKIE)?.value;
   return verifySessionToken(token);
 }
