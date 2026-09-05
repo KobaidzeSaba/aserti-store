@@ -28,6 +28,17 @@ export default async function HomePage({
     <div>
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-silver-muted/15">
+        {/* Raw-stone texture background */}
+        <Image
+          src="/brand/raw-stone.jpg"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover opacity-30"
+        />
+        {/* Left-weighted dark overlay keeps the headline legible */}
+        <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/85 to-ink/55" />
         <div
           className="absolute inset-0 opacity-70"
           style={{
