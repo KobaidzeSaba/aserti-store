@@ -1,7 +1,6 @@
 import { ImageResponse } from "next/og";
 
-// Branded social-share image (link previews). Matches the ASERTI wordmark:
-// white, letter-spaced, on pure black, with the "Order in Chaos" line.
+// Branded social-share image using the exhibition palette and controlled type.
 export const runtime = "edge";
 export const alt = "ASERTI — Order in Chaos";
 export const size = { width: 1200, height: 630 };
@@ -18,15 +17,15 @@ export default function OpengraphImage() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: "#000000",
+          backgroundColor: "#f3f2ed",
         }}
       >
         <div
           style={{
             display: "flex",
-            fontSize: 120,
-            letterSpacing: 40,
-            color: "#ffffff",
+            fontSize: 220,
+            letterSpacing: -15,
+            color: "#292923",
             fontWeight: 500,
           }}
         >
@@ -36,12 +35,12 @@ export default function OpengraphImage() {
           style={{
             display: "flex",
             marginTop: 30,
-            fontSize: 30,
-            letterSpacing: 14,
+            fontSize: 18,
+            letterSpacing: 3,
             color: "#808080",
           }}
         >
-          ORDER IN CHAOS
+          ORDER IN CHAOS · 101
         </div>
       </div>
     ),

@@ -5,6 +5,8 @@ import { prisma } from "@/lib/prisma";
 import { createOrder } from "@/lib/orders";
 import { getGateway, type PaymentProvider } from "@/lib/payments";
 import { getBaseUrl } from "@/lib/baseUrl";
+import { MAX_CART_QUANTITY } from "@/lib/cart";
+import { isCatalogPreview } from "@/lib/products";
 
 const schema = z.object({
   locale: z.string(),
@@ -24,13 +26,19 @@ const schema = z.object({
       z.object({
         slug: z.string().min(1),
         size: z.string().nullable().optional(),
-        quantity: z.number().int().min(1).max(20),
+        quantity: z.number().int().min(1).max(MAX_CART_QUANTITY),
       }),
     )
     .min(1),
 });
 
 export async function POST(req: NextRequest) {
+  if (isCatalogPreview()) {
+    return NextResponse.json(
+      { error: "Catalog preview: connect a database to place orders." },
+      { status: 503 },
+    );
+  }
   let body: unknown;
   try {
     body = await req.json();
@@ -66,7 +74,13 @@ export async function POST(req: NextRequest) {
       amount: order.total,
       currency: order.currency,
       locale,
-      basket: [{ name: `ASERTI order ${order.reference}`, quantity: 1, unitPrice: order.total }],
+      basket: [
+        {
+          name: `ASERTI order ${order.reference}`,
+          quantity: 1,
+          unitPrice: order.total,
+        },
+      ],
       returnUrl,
       callbackUrl,
     });

@@ -1,12 +1,14 @@
 "use client";
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useTransition } from "react";
 import type { Dictionary } from "@/i18n/dictionaries";
 
 export function ShopControls({ dict }: { dict: Dictionary }) {
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
+  const [pending, startTransition] = useTransition();
   const sort = params.get("sort") || "";
   const gem = params.get("gem") || "";
 
@@ -15,14 +17,17 @@ export function ShopControls({ dict }: { dict: Dictionary }) {
     if (value) next.set(key, value);
     else next.delete(key);
     const qs = next.toString();
-    router.push(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    startTransition(() =>
+      router.push(qs ? `${pathname}?${qs}` : pathname, { scroll: false }),
+    );
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-5">
+    <div className="flex flex-wrap items-center gap-5" aria-busy={pending}>
       <label className="flex items-center gap-2 text-xs uppercase tracking-luxe text-silver-muted">
         {dict.shop.sort}
         <select
+          disabled={pending}
           value={sort}
           onChange={(e) => setParam("sort", e.target.value)}
           className="rounded-none border border-silver-muted/30 bg-ink-soft px-3 py-2 text-sm normal-case tracking-normal text-silver outline-none focus:border-champagne"
@@ -36,8 +41,11 @@ export function ShopControls({ dict }: { dict: Dictionary }) {
       <label className="flex cursor-pointer items-center gap-2 text-xs uppercase tracking-luxe text-silver-muted">
         <input
           type="checkbox"
+          disabled={pending}
           checked={gem === "moissanite"}
-          onChange={(e) => setParam("gem", e.target.checked ? "moissanite" : "")}
+          onChange={(e) =>
+            setParam("gem", e.target.checked ? "moissanite" : "")
+          }
           className="accent-champagne"
         />
         {dict.shop.moissaniteOnly}

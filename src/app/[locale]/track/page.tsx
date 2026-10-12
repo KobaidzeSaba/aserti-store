@@ -23,15 +23,25 @@ export default function TrackPage({
         <input type="hidden" name="locale" value={params.locale} />
         <div>
           <label className="label">{dict.track.reference}</label>
-          <input name="reference" className="field" placeholder="AS-XXXXXX" autoComplete="off" />
+          <input
+            name="reference"
+            className="field"
+            placeholder="AS-XXXXXX"
+            autoComplete="off"
+          />
         </div>
         <div>
           <label className="label">{dict.track.email}</label>
-          <input name="email" type="email" className="field" autoComplete="email" />
+          <input
+            name="email"
+            type="email"
+            className="field"
+            autoComplete="email"
+          />
         </div>
 
         {hasError && (
-          <p className="rounded-none border border-red-500/40 bg-red-500/10 px-4 py-2.5 text-sm text-red-300">
+          <p className="rounded-none border border-red-500/40 bg-red-500/10 px-4 py-2.5 text-sm text-red-700">
             {dict.track.notFound}
           </p>
         )}

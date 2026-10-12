@@ -4,6 +4,7 @@ import { localizeProduct } from "./products";
 import { shippingFor } from "./money";
 import { createShipment } from "./shipping/quickshipper";
 import { sendOrderConfirmationEmail, sendOrderShippedEmail } from "./email";
+import { MAX_CART_QUANTITY } from "./cart";
 
 export type CheckoutItemInput = {
   slug: string;
@@ -53,7 +54,10 @@ export async function createOrder(params: {
   const lineData = items.map((item) => {
     const product = bySlug.get(item.slug);
     if (!product) throw new Error(`Unknown product: ${item.slug}`);
-    const quantity = Math.max(1, Math.min(20, Math.floor(item.quantity)));
+    const quantity = Math.max(
+      1,
+      Math.min(MAX_CART_QUANTITY, Math.floor(item.quantity)),
+    );
     const localized = localizeProduct(product, locale);
     const unitPrice = product.price;
     return {
@@ -186,7 +190,8 @@ export async function markOrderPaid(
 
 export async function markOrderFailed(reference: string) {
   const order = await prisma.order.findUnique({ where: { reference } });
-  if (!order || order.status === "paid" || order.status === "shipped") return order;
+  if (!order || order.status === "paid" || order.status === "shipped")
+    return order;
   return prisma.order.update({
     where: { reference },
     data: { status: "failed" },

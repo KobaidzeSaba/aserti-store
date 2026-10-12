@@ -7,35 +7,49 @@ import { ProductMedia } from "./ProductMedia";
 export function ProductCard({
   product,
   locale,
+  index,
 }: {
   product: LocalizedProduct;
   locale: Locale;
+  index?: number;
 }) {
   return (
     <Link
       href={`/${locale}/product/${product.slug}`}
-      className="group block"
+      className="object-card"
+      aria-label={`${product.name} — ${formatPrice(product.price, locale)}`}
     >
-      <div className="relative aspect-square overflow-hidden rounded-none border border-silver-muted/10 transition-colors duration-300 group-hover:border-silver-muted/40">
+      <div className="object-card-image">
         <ProductMedia
           category={product.category}
           gem={product.gem}
           images={product.images}
           alt={product.name}
-          className="h-full w-full transition-transform duration-700 group-hover:scale-105"
+          className="h-full w-full"
+          sizes="(max-width: 700px) 90vw, (max-width: 1050px) 45vw, 42vw"
         />
-        {product.gem && (
-          <span className="absolute left-3 top-3 rounded-none border border-champagne/40 bg-ink/60 px-2.5 py-1 text-[10px] uppercase tracking-luxe text-champagne">
-            {product.gem}
-          </span>
-        )}
+        <span className="object-card-number micro">
+          {index ? String(index).padStart(2, "0") : product.models[0]}
+        </span>
       </div>
-      <div className="mt-4 flex items-baseline justify-between gap-3">
-        <h3 className="heading-serif text-xl text-silver group-hover:text-champagne">
-          {product.name}
+      <div className="object-card-info">
+        <h3 className="object-card-name">
+          {product.presentation.title ?? product.name}
         </h3>
-        <span className="whitespace-nowrap text-sm text-silver-muted">
+        <span className="object-card-price">
           {formatPrice(product.price, locale)}
+        </span>
+      </div>
+      <div className="flex items-end justify-between gap-4">
+        <p className="object-card-meta micro">
+          {product.presentation.year && (
+            <>{product.presentation.year} &nbsp; / &nbsp; </>
+          )}
+          {product.material}
+          {product.gem ? ` / ${product.gem}` : ""}
+        </p>
+        <span className="object-card-arrow" aria-hidden>
+          ↗
         </span>
       </div>
     </Link>

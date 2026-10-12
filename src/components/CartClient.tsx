@@ -6,6 +6,7 @@ import type { Dictionary } from "@/i18n/dictionaries";
 import { formatPrice, shippingFor } from "@/lib/money";
 import { ProductMedia } from "./ProductMedia";
 import { useCart } from "./CartProvider";
+import { MAX_CART_QUANTITY } from "@/lib/cart";
 
 export function CartClient({
   locale,
@@ -17,7 +18,11 @@ export function CartClient({
   const { items, subtotal, setQuantity, remove, ready } = useCart();
 
   if (!ready) {
-    return <p className="py-20 text-center text-silver-muted">{dict.common.loading}</p>;
+    return (
+      <p className="py-20 text-center text-silver-muted">
+        {dict.common.loading}
+      </p>
+    );
   }
 
   if (items.length === 0) {
@@ -94,10 +99,11 @@ export function CartClient({
                     <button
                       type="button"
                       aria-label="increase"
+                      disabled={item.quantity >= MAX_CART_QUANTITY}
                       onClick={() =>
                         setQuantity(item.slug, item.size, item.quantity + 1)
                       }
-                      className="px-3 py-1.5 text-silver hover:text-champagne"
+                      className="px-3 py-1.5 text-silver hover:text-champagne disabled:cursor-not-allowed disabled:opacity-40"
                     >
                       +
                     </button>

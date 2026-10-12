@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { formatPrice } from "@/lib/money";
 import { getGateway, type PaymentProvider } from "@/lib/payments";
 import { markOrderFailed, markOrderPaid } from "@/lib/orders";
+import { PaidOrderCartSync } from "@/components/PaidOrderCartSync";
 
 export const dynamic = "force-dynamic";
 
@@ -57,13 +58,14 @@ export default async function OrderPage({
       : dict.confirmation.pending;
 
   const statusColor = paid
-    ? "text-emerald-400 border-emerald-500/40 bg-emerald-500/10"
+    ? "text-emerald-700 border-emerald-500/40 bg-emerald-500/10"
     : failed
-      ? "text-red-300 border-red-500/40 bg-red-500/10"
+      ? "text-red-700 border-red-500/40 bg-red-500/10"
       : "text-champagne border-champagne/40 bg-champagne/10";
 
   return (
     <div className="container-x max-w-2xl py-20">
+      {paid && <PaidOrderCartSync reference={order.reference} />}
       <div className="text-center">
         <span
           className={`inline-block rounded-full border px-4 py-1.5 text-xs uppercase tracking-luxe ${statusColor}`}
@@ -71,7 +73,11 @@ export default async function OrderPage({
           {statusLabel}
         </span>
         <h1 className="heading-serif mt-6 text-4xl text-silver">
-          {paid ? dict.confirmation.thankYou : failed ? dict.confirmation.failed : dict.confirmation.thankYou}
+          {paid
+            ? dict.confirmation.thankYou
+            : failed
+              ? dict.confirmation.failed
+              : dict.confirmation.thankYou}
         </h1>
         <p className="mt-3 text-silver-muted">
           {dict.confirmation.reference}:{" "}
@@ -106,7 +112,10 @@ export default async function OrderPage({
       <div className="mt-10 rounded-sm border border-silver-muted/15">
         <ul className="divide-y divide-silver-muted/10">
           {order.items.map((it) => (
-            <li key={it.id} className="flex justify-between gap-3 px-5 py-4 text-sm">
+            <li
+              key={it.id}
+              className="flex justify-between gap-3 px-5 py-4 text-sm"
+            >
               <span className="text-silver-muted">
                 {it.nameSnapshot}
                 {it.size ? ` · ${it.size}` : ""} × {it.quantity}
@@ -120,10 +129,14 @@ export default async function OrderPage({
         <div className="space-y-2 border-t border-silver-muted/10 px-5 py-4 text-sm">
           <div className="flex justify-between">
             <span className="text-silver-muted">{dict.checkout.subtotal}</span>
-            <span className="text-silver">{formatPrice(order.subtotal, locale)}</span>
+            <span className="text-silver">
+              {formatPrice(order.subtotal, locale)}
+            </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-silver-muted">{dict.checkout.shippingCost}</span>
+            <span className="text-silver-muted">
+              {dict.checkout.shippingCost}
+            </span>
             <span className="text-silver">
               {order.shippingCost === 0
                 ? dict.checkout.freeShipping
@@ -132,7 +145,9 @@ export default async function OrderPage({
           </div>
           <div className="flex justify-between border-t border-silver-muted/10 pt-2 text-base">
             <span className="text-silver">{dict.checkout.total}</span>
-            <span className="text-champagne">{formatPrice(order.total, locale)}</span>
+            <span className="text-champagne">
+              {formatPrice(order.total, locale)}
+            </span>
           </div>
         </div>
       </div>

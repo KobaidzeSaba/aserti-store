@@ -4,7 +4,7 @@
 export type CatalogProduct = {
   slug: string;
   models: string[];
-  category: "rings" | "earrings" | "crosses";
+  category: string; // Extend with sculpture, accessories, digital-objects, etc.
   material: string;
   gem?: string;
   sizeInfo?: string;
@@ -18,8 +18,7 @@ export type CatalogProduct = {
   desc: { ka: string; en: string; ru: string };
 };
 
-export const CATEGORIES = ["rings", "earrings", "crosses"] as const;
-export type Category = (typeof CATEGORIES)[number];
+export type Category = string;
 
 export const catalog: CatalogProduct[] = [
   {
@@ -93,7 +92,11 @@ export const catalog: CatalogProduct[] = [
     gem: "Moissanite",
     weight: 17,
     price: 650,
-    name: { ka: "საყურეები Rift Hoops", en: "Rift Hoop Earrings", ru: "Серьги Rift Hoops" },
+    name: {
+      ka: "საყურეები Rift Hoops",
+      en: "Rift Hoop Earrings",
+      ru: "Серьги Rift Hoops",
+    },
     desc: {
       ka: "რგოლები მოისანიტის ხაზით — ნათება მოძრაობაში. 925 სპილენძვერცხლი.",
       en: "Hoops split by a line of moissanite — light that moves with you. 925 sterling silver.",
@@ -109,7 +112,11 @@ export const catalog: CatalogProduct[] = [
     weight: 18,
     price: 680,
     featured: true,
-    name: { ka: "საყურეები Meteor", en: "Meteor Earrings", ru: "Серьги Meteor" },
+    name: {
+      ka: "საყურეები Meteor",
+      en: "Meteor Earrings",
+      ru: "Серьги Meteor",
+    },
     desc: {
       ka: "დინამიური ფორმა მოისანიტით — ცის ნამსხვრევი. 925 სპილენძვერცხლი.",
       en: "A dynamic form set with moissanite — a fragment of the sky. 925 sterling silver.",
@@ -123,7 +130,11 @@ export const catalog: CatalogProduct[] = [
     material: "925 Sterling Silver",
     weight: 6,
     price: 260,
-    name: { ka: "საყურეები Studs", en: "Stud Earrings", ru: "Серьги-гвоздики Studs" },
+    name: {
+      ka: "საყურეები Studs",
+      en: "Stud Earrings",
+      ru: "Серьги-гвоздики Studs",
+    },
     desc: {
       ka: "მინიმალისტური ჩასაცმელი საყურეები ყოველდღისთვის. 925 სპილენძვერცხლი.",
       en: "Minimalist studs for every day. 925 sterling silver.",
@@ -176,3 +187,8 @@ export const catalog: CatalogProduct[] = [
     },
   },
 ];
+
+// Only populated categories are published.
+export const CATEGORIES = Array.from(
+  new Set(catalog.map((product) => product.category)),
+);

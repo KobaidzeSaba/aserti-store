@@ -6,6 +6,8 @@ import { getDictionary } from "@/i18n/dictionaries";
 import { CartProvider } from "@/components/CartProvider";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { ExhibitionMotion } from "@/components/ExhibitionMotion";
+import { editorial } from "@/lib/editorial";
 
 // ALK Sanet — the brand's Georgian typeface, self-hosted and used site-wide.
 const alkSanet = localFont({
@@ -25,9 +27,9 @@ export function generateMetadata({
 }): Metadata {
   const locale = isLocale(params.locale) ? params.locale : "ka";
   const dict = getDictionary(locale);
-  const description = `${dict.tagline} ${dict.home.heroSubtitle}`;
+  const description = `${editorial(locale).studioLine} ${editorial(locale).studioSecond}`;
   return {
-    title: { default: `ASERTI — ${dict.tagline}`, template: "%s · ASERTI" },
+    title: { default: "Order in Chaos · 101", template: "%s · ASERTI" },
     description,
     openGraph: {
       title: "ASERTI",
@@ -53,11 +55,21 @@ export default function LocaleLayout({
 
   return (
     <html lang={locale} className={alkSanet.variable}>
-      <body className="flex min-h-screen flex-col">
+      <body className="flex min-h-screen flex-col" id="top">
         <CartProvider>
+          <a href="#main-content" className="skip-link">
+            {locale === "ka"
+              ? "შინაარსზე გადასვლა"
+              : locale === "ru"
+                ? "К содержимому"
+                : "Skip to content"}
+          </a>
           <Header locale={locale} dict={dict} />
-          <main className="flex-1">{children}</main>
+          <main className="w-full flex-1" id="main-content">
+            {children}
+          </main>
           <Footer locale={locale} dict={dict} />
+          <ExhibitionMotion />
         </CartProvider>
       </body>
     </html>

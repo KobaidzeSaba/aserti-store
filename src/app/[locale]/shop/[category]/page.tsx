@@ -2,13 +2,12 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import type { Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
-import { CATEGORIES } from "@/data/catalog";
-import { getProductsByCategory } from "@/lib/products";
+import { getAllProducts } from "@/lib/products";
+import { categoryLabel, editorial } from "@/lib/editorial";
 import { ProductCard } from "@/components/ProductCard";
 import { ShopNav } from "@/components/ShopNav";
 import { ShopControls } from "@/components/ShopControls";
 import { applyShopQuery } from "@/lib/shopQuery";
-
 export const dynamic = "force-dynamic";
 
 export default async function CategoryPage({
@@ -19,40 +18,51 @@ export default async function CategoryPage({
   searchParams: { sort?: string; gem?: string };
 }) {
   const { locale, category } = params;
-  if (!(CATEGORIES as readonly string[]).includes(category)) notFound();
-
   const dict = getDictionary(locale);
+  const t = editorial(locale);
+  const all = await getAllProducts(locale);
+  const categories = Array.from(new Set(all.map((p) => p.category)));
+  if (!categories.includes(category)) notFound();
   const products = applyShopQuery(
-    await getProductsByCategory(locale, category),
+    all.filter((p) => p.category === category),
     searchParams,
   );
-
-  const title =
-    category === "rings"
-      ? dict.nav.rings
-      : category === "earrings"
-        ? dict.nav.earrings
-        : dict.nav.crosses;
-
   return (
-    <div className="container-x py-14">
-      <h1 className="heading-serif text-4xl text-silver">{title}</h1>
-      <div className="mt-8 flex flex-wrap items-center justify-between gap-6">
-        <ShopNav locale={locale} dict={dict} active={category} />
+    <>
+      <div className="page-intro">
+        <p className="micro">ASERTI / {t.index}</p>
+        <h1 className="page-title category-title">
+          {categoryLabel(category, locale)}
+          <span className="shop-count">
+            ({String(products.length).padStart(2, "0")})
+          </span>
+        </h1>
+      </div>
+      <div className="shop-toolbar">
+        <ShopNav
+          locale={locale}
+          dict={dict}
+          active={category}
+          categories={categories}
+        />
         <Suspense fallback={null}>
           <ShopControls dict={dict} />
         </Suspense>
       </div>
-
       {products.length === 0 ? (
-        <p className="mt-16 text-silver-muted">{dict.shop.empty}</p>
+        <p className="container-x py-20">{dict.shop.empty}</p>
       ) : (
-        <div className="mt-12 grid grid-cols-2 gap-x-6 gap-y-12 lg:grid-cols-4">
-          {products.map((p) => (
-            <ProductCard key={p.id} product={p} locale={locale} />
+        <div className="shop-grid">
+          {products.map((product, index) => (
+            <ProductCard
+              key={product.id}
+              product={product}
+              locale={locale}
+              index={index + 1}
+            />
           ))}
         </div>
       )}
-    </div>
+    </>
   );
 }

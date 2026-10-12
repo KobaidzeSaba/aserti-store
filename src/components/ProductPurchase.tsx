@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries";
 import { useCart } from "./CartProvider";
+import { MAX_CART_QUANTITY } from "@/lib/cart";
 
 type Props = {
   locale: Locale;
@@ -22,7 +23,9 @@ type Props = {
 
 export function ProductPurchase({ locale, dict, product }: Props) {
   const { add } = useCart();
-  const [size, setSize] = useState<string | null>(product.hasSizes ? "S" : null);
+  const [size, setSize] = useState<string | null>(
+    product.hasSizes ? "S" : null,
+  );
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
 
@@ -55,6 +58,7 @@ export function ProductPurchase({ locale, dict, product }: Props) {
               <button
                 key={s.key}
                 type="button"
+                aria-pressed={size === s.key}
                 onClick={() => setSize(s.key)}
                 className={
                   "rounded-sm border px-5 py-2.5 text-sm transition-colors " +
@@ -75,6 +79,7 @@ export function ProductPurchase({ locale, dict, product }: Props) {
           <button
             type="button"
             aria-label="decrease"
+            disabled={qty <= 1}
             onClick={() => setQty((q) => Math.max(1, q - 1))}
             className="px-4 py-2.5 text-silver hover:text-champagne"
           >
@@ -84,7 +89,8 @@ export function ProductPurchase({ locale, dict, product }: Props) {
           <button
             type="button"
             aria-label="increase"
-            onClick={() => setQty((q) => Math.min(20, q + 1))}
+            disabled={qty >= MAX_CART_QUANTITY}
+            onClick={() => setQty((q) => Math.min(MAX_CART_QUANTITY, q + 1))}
             className="px-4 py-2.5 text-silver hover:text-champagne"
           >
             +

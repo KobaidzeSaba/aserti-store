@@ -10,10 +10,33 @@ export default function sitemap(): MetadataRoute.Sitemap {
 
   for (const locale of locales) {
     entries.push(
-      { url: `${base}/${locale}`, lastModified: now, changeFrequency: "weekly", priority: 1 },
-      { url: `${base}/${locale}/shop`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
-      { url: `${base}/${locale}/about`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
+      {
+        url: `${base}/${locale}`,
+        lastModified: now,
+        changeFrequency: "weekly",
+        priority: 1,
+      },
+      {
+        url: `${base}/${locale}/shop`,
+        lastModified: now,
+        changeFrequency: "weekly",
+        priority: 0.9,
+      },
+      {
+        url: `${base}/${locale}/studio`,
+        lastModified: now,
+        changeFrequency: "monthly",
+        priority: 0.5,
+      },
     );
+    for (const page of ["101", "contact"]) {
+      entries.push({
+        url: `${base}/${locale}/${page}`,
+        lastModified: now,
+        changeFrequency: "monthly",
+        priority: 0.5,
+      });
+    }
     for (const category of CATEGORIES) {
       entries.push({
         url: `${base}/${locale}/shop/${category}`,

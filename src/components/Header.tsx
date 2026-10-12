@@ -1,87 +1,97 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import type { Locale } from "@/i18n/config";
 import type { Dictionary } from "@/i18n/dictionaries";
+import { editorial } from "@/lib/editorial";
 import { useCart } from "./CartProvider";
 import { LocaleSwitcher } from "./LocaleSwitcher";
 
 export function Header({ locale, dict }: { locale: Locale; dict: Dictionary }) {
   const { count, ready } = useCart();
   const [open, setOpen] = useState(false);
+  const path = usePathname();
+  const t = editorial(locale);
   const base = `/${locale}`;
-
   const links = [
-    { href: `${base}/shop/rings`, label: dict.nav.rings },
-    { href: `${base}/shop/earrings`, label: dict.nav.earrings },
-    { href: `${base}/shop/crosses`, label: dict.nav.crosses },
-    { href: `${base}/about`, label: dict.nav.about },
+    { href: `${base}/shop`, label: "Objects" },
+    { href: `${base}/studio`, label: "Studio" },
+    { href: `${base}/101`, label: "101" },
+    { href: `${base}/contact`, label: t.contact },
   ];
+  useEffect(() => {
+    setOpen(false);
+  }, [path]);
+  useEffect(() => {
+    function escape(event: KeyboardEvent) {
+      if (event.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("keydown", escape);
+    return () => document.removeEventListener("keydown", escape);
+  }, []);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-silver-muted/15 bg-ink/85 backdrop-blur">
-      <div className="container-x flex h-16 items-center justify-between gap-4">
+    <header className="site-header">
+      <div className="header-inner">
         <Link
           href={base}
-          className="heading-serif text-2xl tracking-[0.35em] text-silver"
+          className="header-wordmark"
+          aria-label="ASERTI — home"
         >
-          {dict.brand}
+          ASERTI
         </Link>
-
-        <nav className="hidden items-center gap-8 md:flex">
-          {links.map((l) => (
+        <nav className="desktop-nav" aria-label="Main navigation">
+          {links.map((link) => (
             <Link
-              key={l.href}
-              href={l.href}
-              className="text-xs uppercase tracking-luxe text-silver-muted transition-colors hover:text-champagne"
+              key={link.href}
+              href={link.href}
+              aria-current={path.startsWith(link.href) ? "page" : undefined}
             >
-              {l.label}
+              {link.label}
             </Link>
           ))}
         </nav>
-
-        <div className="flex items-center gap-5">
-          <LocaleSwitcher current={locale} />
-          <Link
-            href={`${base}/cart`}
-            className="relative text-xs uppercase tracking-luxe text-silver transition-colors hover:text-champagne"
-          >
-            {dict.nav.cart}
-            {ready && count > 0 && (
-              <span className="ml-1.5 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-champagne px-1 text-[11px] font-semibold text-ink">
-                {count}
-              </span>
-            )}
+        <div className="header-tools">
+          <div className="desktop-languages">
+            <LocaleSwitcher current={locale} />
+          </div>
+          <Link href={`${base}/cart`} className="cart-link">
+            {dict.nav.cart}{" "}
+            <span>({ready ? String(count).padStart(2, "0") : "00"})</span>
           </Link>
           <button
-            type="button"
-            className="md:hidden text-silver"
-            aria-label="Menu"
-            onClick={() => setOpen((v) => !v)}
+            className="menu-toggle"
+            onClick={() => setOpen(!open)}
+            aria-expanded={open}
+            aria-controls="mobile-navigation"
           >
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
-              <line x1="3" y1="6" x2="21" y2="6" />
-              <line x1="3" y1="12" x2="21" y2="12" />
-              <line x1="3" y1="18" x2="21" y2="18" />
-            </svg>
+            {open ? t.close : t.menu}{" "}
+            <span aria-hidden>{open ? "−" : "+"}</span>
           </button>
         </div>
       </div>
-
       {open && (
-        <nav className="border-t border-silver-muted/15 md:hidden">
-          <div className="container-x flex flex-col py-3">
-            {links.map((l) => (
-              <Link
-                key={l.href}
-                href={l.href}
-                onClick={() => setOpen(false)}
-                className="py-2.5 text-sm uppercase tracking-luxe text-silver-muted hover:text-champagne"
-              >
-                {l.label}
-              </Link>
-            ))}
+        <nav
+          id="mobile-navigation"
+          className="mobile-navigation"
+          aria-label="Mobile navigation"
+        >
+          {links.map((link, i) => (
+            <Link
+              key={link.href}
+              href={link.href}
+              onClick={() => setOpen(false)}
+            >
+              <span className="micro">0{i + 1}</span>
+              {link.label}
+              <span aria-hidden>↗</span>
+            </Link>
+          ))}
+          <div className="mobile-language-row">
+            <span className="micro">LANGUAGE</span>
+            <LocaleSwitcher current={locale} />
           </div>
         </nav>
       )}

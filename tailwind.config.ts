@@ -1,34 +1,28 @@
 import type { Config } from "tailwindcss";
 
 const config: Config = {
-  content: [
-    "./src/**/*.{js,ts,jsx,tsx,mdx}",
-  ],
+  content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],
   theme: {
     extend: {
       colors: {
-        // ASERTI brandbook palette — strictly monochrome.
-        // Black (#000000), Mirror Silver (#252525), Industrial Gray
-        // (#808080 / #4D4D4D), Glass/White (#FFFFFF).
+        // Neutral exhibition palette. Legacy token names also theme checkout/admin.
         ink: {
-          DEFAULT: "#000000", // black — absorbs light
-          soft: "#101010", // near-black surface
-          muted: "#252525", // mirror silver surface / hover
+          DEFAULT: "#f3f2ed",
+          soft: "#eeede7",
+          muted: "#e4e3dc",
         },
-        // "champagne" name kept so existing utility classes map to the new
-        // monochrome accent (pure white / glass) — no gold anywhere.
         champagne: {
-          DEFAULT: "#ffffff",
-          light: "#ffffff",
-          dark: "#9e9e9e",
+          DEFAULT: "#292923",
+          light: "#292923",
+          dark: "#46463f",
         },
         silver: {
-          DEFAULT: "#ededed", // primary text (near-white)
-          muted: "#808080", // industrial gray — secondary text/borders
+          DEFAULT: "#292923",
+          muted: "#727269",
         },
       },
       fontFamily: {
-        serif: ["var(--font-serif)", "Cormorant Garamond", "Georgia", "serif"],
+        serif: ["var(--font-sans)", "Arial", "sans-serif"],
         sans: ["var(--font-sans)", "system-ui", "sans-serif"],
       },
       letterSpacing: {

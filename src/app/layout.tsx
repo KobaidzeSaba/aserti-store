@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   ),
   title: { default: "ASERTI — Order in Chaos", template: "%s · ASERTI" },
   description:
-    "ASERTI — conceptual jewelry in pure silver. Order in Chaos. 101. The contrast of mirror-polished metal and raw stone. Tbilisi, 2026.",
+    "ASERTI is an independent design project based in Tbilisi, exploring form, material and contrast through objects. Order in Chaos · 101.",
 };
 
 export default function RootLayout({

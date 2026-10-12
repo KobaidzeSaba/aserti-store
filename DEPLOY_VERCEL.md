@@ -1,155 +1,68 @@
-# Deploy ASERTI STORE to Vercel — step by step
+# Deploy ASERTI STORE to Vercel
 
-This gets a **live, testable** store online in ~15 minutes. It runs in **sandbox
-payment mode** (no real charges), which is what you want for testing.
+1. Create a development Neon Postgres database and copy its connection string.
+2. Import `KobaidzeSaba/aserti-store` into Vercel using the Next.js preset.
+3. Set `DATABASE_URL`, `ADMIN_USERNAME`, a strong `ADMIN_PASSWORD`, and a random
+   `ADMIN_SESSION_SECRET` for the intended Vercel environment.
+4. In a trusted local or CI environment configured for that database, run:
 
-You'll do the parts that need *your* login (creating the DB, Vercel account). The
-project is already fully prepared: Postgres schema, an initial migration, and a
-build that auto-migrates + seeds the catalog on every deploy.
-
----
-
-## What you need
-- A **GitHub** account (free) — to hold the code.
-- A **Vercel** account (free) — sign in with GitHub.
-- A **Postgres** database (free) — we'll use **Neon**.
-
----
-
-## Step 1 — Create a free Postgres database (Neon)
-
-1. Go to **https://neon.tech** and sign up (GitHub login is easiest).
-2. Create a project (any name, e.g. `aserti`). Region: pick **EU** (closest to Georgia).
-3. On the project dashboard, open **Connect** / **Connection string**.
-4. Copy **two** connection strings:
-   - The **pooled** string (has `-pooler` in the host) → this is your `DATABASE_URL`.
-   - The **direct** string (no `-pooler`) → this is your `DIRECT_URL`.
-   - If you only see one, use it for **both**.
-   Each looks like:
-   `postgresql://user:pass@ep-xxx-pooler.eu-central-1.aws.neon.tech/neondb?sslmode=require`
-
-Keep these two strings handy for Step 3.
-
----
-
-## Step 2 — Put the code on GitHub
-
-The repo is already committed locally. In a terminal in this folder
-(`C:\Users\user\Documents\ASERTI`):
-
-1. Create an **empty** repo on GitHub (no README) at https://github.com/new — name it `aserti-store`.
-2. Then run (replace `YOUR-USERNAME`):
-
-```bash
-git branch -M main
-git remote add origin https://github.com/YOUR-USERNAME/aserti-store.git
-git push -u origin main
-```
-
-(If git asks you to sign in, use your GitHub login / a Personal Access Token.)
-
----
-
-## Step 3 — Deploy on Vercel
-
-1. Go to **https://vercel.com/new** and sign in with GitHub.
-2. **Import** the `aserti-store` repo. Framework preset auto-detects **Next.js** — leave defaults.
-3. Before clicking Deploy, expand **Environment Variables** and add these:
-
-   | Name | Value |
-   |------|-------|
-   | `DATABASE_URL` | *(Neon pooled string from Step 1 — the one with `-pooler`)* |
-   | `PAYMENTS_MODE` | `sandbox` |
-   | `ADMIN_USERNAME` | `admin` |
-   | `ADMIN_PASSWORD` | *(pick a strong password)* |
-   | `ADMIN_SESSION_SECRET` | *(paste a long random string — see below)* |
-
-   Generate a session secret by running this locally and copying the output:
    ```bash
-   node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+   npm ci
+   npm run db:deploy
+   npm run db:seed
    ```
 
-   > You do **not** need `NEXT_PUBLIC_BASE_URL` — the app auto-detects the Vercel URL.
-   > Payment/shipping/SMTP keys can stay empty; in sandbox mode they aren't used,
-   > and order emails are written to the Vercel function logs instead of being sent.
+5. Deploy with `npm run build`. The build does not run migrations or seed products.
+6. Set `NEXT_PUBLIC_BASE_URL` to the deployment's intended public URL before testing
+   payment redirects (Vercel's hostname is used as a fallback).
+7. Test the storefront, failed-payment retry, successful-payment cart reconciliation
+   and admin dashboard. Leave all payment, courier and SMTP credentials empty for
+   the in-app simulation. Simulated tracking codes are not real courier shipments.
 
-4. Click **Deploy**. The build runs `prisma migrate deploy` (creates tables),
-   seeds the 10 products, then builds the site. First build takes a couple of minutes.
+The current application chooses integrations by credentials, not `PAYMENTS_MODE`.
+Adding Flitt or BOG credentials enables that provider even if the environment says
+`sandbox`; adding courier or SMTP credentials enables those integrations too.
 
----
-
-## Step 4 — Test it
-
-When the deploy finishes, Vercel gives you a URL like
-`https://aserti-store-xxxx.vercel.app`.
-
-- **Storefront:** open the URL — it redirects to `/ka`. Switch languages (ka / en / ru) top-right.
-- **Buy something:** add an item → **Cart** → **Checkout** → fill details → choose Flitt or BOG → **Pay**.
-  Without payment credentials you'll land on the **sandbox payment page** — click *Payment
-  received*. The order is marked paid and gets a Quickshipper tracking code.
-- **Admin:** go to `/en/admin`, sign in with the `ADMIN_USERNAME` / `ADMIN_PASSWORD`
-  you set. You'll see the order, revenue, and tracking code.
-
-That's a fully working store you can share and click through.
-
----
-
-## Real payments — Flitt (works now with the public TEST merchant)
-
-The Flitt integration is real. To turn on **real test-mode** Flitt checkout on your
-deployed site (no mock page), add these env vars in Vercel → **Settings → Environment
-Variables** (all environments) and redeploy:
-
-```
-FLITT_MERCHANT_ID = 1549901
-FLITT_SECRET_KEY  = test
-```
-
-Now the "Card via Flitt" option sends the customer to Flitt's real hosted checkout
-(test cards, no real money). Flitt calls back to `/api/payments/flitt/callback`, and we
-re-query Flitt for the authoritative status before marking the order paid. For **live
-charges**, swap in your own Flitt live `FLITT_MERCHANT_ID` / `FLITT_SECRET_KEY`.
-
-**Bank of Georgia** activates the same way once you have merchant credentials
-(`BOG_CLIENT_ID`, `BOG_CLIENT_SECRET`). Until then, BOG falls back to the sandbox page.
-
-Also for production: set `NEXT_PUBLIC_BASE_URL` to your final domain, add SMTP
-(`SMTP_HOST/PORT/USER/PASS/FROM`) for order emails and `QUICKSHIPPER_API_KEY`/`SECRET`
-(+ `PAYMENTS_MODE=live`) for live shipping, and register the callback URL
-`https://YOUR-DOMAIN/api/payments/flitt/callback` (and `/bog/callback`) in each dashboard.
-
-<!-- verify endpoints note below -->
-5. Verify the exact Flitt/BOG/Quickshipper endpoints against your merchant docs first
-   (they're in `src/lib/payments/*` and `src/lib/shipping/quickshipper.ts`), and test a
-   small real payment.
-
----
-
-## Alternative: deploy without GitHub (Vercel CLI)
-
-If you'd rather not use GitHub:
-
-```bash
-npm i -g vercel
-vercel login          # opens the browser to authenticate you
-vercel                # first run: answer the prompts, links a new project
-# add env vars (repeat for each, or use the dashboard):
-vercel env add DATABASE_URL
-vercel env add DIRECT_URL
-vercel env add ADMIN_PASSWORD
-vercel env add ADMIN_SESSION_SECRET
-vercel --prod         # production deploy
-```
-
----
+See [DEPLOYMENT.md](DEPLOYMENT.md) for configuration details and
+[PROJECT_REVIEW.md](PROJECT_REVIEW.md) for the payment/fulfillment and dependency
+issues that need resolution before live sales.
 
 ## Troubleshooting
 
-- **Build fails at `prisma migrate deploy`** → `DATABASE_URL` / `DIRECT_URL` are wrong or the
-  DB isn't reachable. Re-copy them from Neon (include `?sslmode=require`).
-- **Store shows no products** → the seed step didn't run; check the build log. Re-deploying
-  re-runs it (it's safe/idempotent).
-- **Admin won't log in** → confirm `ADMIN_PASSWORD` and `ADMIN_SESSION_SECRET` are set in Vercel,
-  then redeploy.
-- **Order email** → in sandbox/no-SMTP, it's logged under Vercel → your deployment → **Logs**,
-  not emailed.
+- Database connection failure: verify the database and connection string for the
+  environment. The application uses Neon's WebSocket/HTTP adapter.
+- Missing tables: run `npm run db:deploy` against the correct database.
+- Empty catalog: run the seed intentionally; it updates existing seeded records.
+- Admin login failure: verify `ADMIN_PASSWORD` and the signing secret, then redeploy.
+- No email received: without `SMTP_HOST`, emails are logged on the server.
+
+## Current redesign deployment
+
+Deployed the local redesign to the existing `keri2/aserti-store` production project
+on 2026-09-25 with Vercel CLI. Production URL: https://aserti-store.vercel.app.
+Deployment ID: `dpl_GQR8bw9HNxphr5og188Lg86JNUih`.
+
+Existing production environment variables were preserved; catalog preview mode was
+not enabled. The cloud build passed. Live checks returned HTTP 200 for all three
+homepage locales, Studio, 101, Contact, shop, Cliff product, checkout, and both new
+image assets. The browser confirmed all 10 database products in the catalog.
+No payment or shipment was initiated. This was a direct local deployment; the
+redesign has not been committed or pushed to GitHub.
+
+## Custom domain (verified 2026-10-12)
+
+Production is available at https://aserti.ge, redirecting to
+https://www.aserti.ge. Both domains are attached to `keri2/aserti-store` and
+Vercel reports valid, verified DNS. Production `NEXT_PUBLIC_BASE_URL` is set to
+`https://www.aserti.ge`.
+
+Existing working DNS records:
+
+| Type | Name | Value |
+| --- | --- | --- |
+| A | @ | 216.198.79.1 |
+| CNAME | www | 734fa1d267f0a9ff.vercel-dns-017.com. |
+
+Vercel additionally recommends a second apex A record, `64.29.17.1`, but accepts
+the current configuration. Keep the existing AWS nameservers and unrelated email
+records. No registrar changes are required for the current site to work.

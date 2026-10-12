@@ -1,116 +1,113 @@
 # ASERTI STORE
 
-A trilingual (ქართული / English / Русский) e-commerce store for ASERTI sterling-silver
-jewelry, built with **Next.js 14 (App Router)**, **TypeScript**, **Tailwind CSS** and
-**Prisma**. Payments via **TBC Bank** and **Bank of Georgia**; shipping via **Quickshipper**.
-
-The store runs fully end-to-end out of the box in **sandbox mode** — no bank credentials
-required. Drop real credentials into `.env` and flip `PAYMENTS_MODE=live` to go live.
+A trilingual (ქართული / English / Русский) sterling-silver jewelry store built with
+Next.js 14 App Router, TypeScript, Tailwind CSS and Prisma. The catalog contains
+10 products, priced in Georgian Lari (GEL).
 
 ## Features
 
-- 🏷️ **Catalog** — 10 products (rings, earrings, crosses) seeded from the ASERTI PDF, in GEL (₾).
-- 🌐 **i18n** — Georgian, English, Russian with a language switcher and locale-prefixed routes (`/ka`, `/en`, `/ru`).
-- 🖼️ **Photography** — real product photos from `/public/products` with a thumbnail gallery, falling back to category vector art (see [public/products/README.md](public/products/README.md)).
-- 🛒 **Cart & checkout** — client cart (localStorage) + server-side order creation with price re-validation.
-- 💳 **Payments** — **Flitt** (real, validated) and **Bank of Georgia** e-commerce gateways behind a common interface, with a sandbox fallback when a provider has no credentials.
-- 📦 **Shipping** — Quickshipper shipment created automatically when an order is paid; tracking code stored on the order.
-- ✉️ **Email** — trilingual order-confirmation emails via SMTP (logged to console when SMTP isn't configured).
-- 🔐 **Admin** — password-protected order dashboard at `/{locale}/admin` with a signed session cookie.
+- Georgian, English and Russian storefronts at `/ka`, `/en` and `/ru`.
+- Product galleries, category browsing, sorting and filtering.
+- Persistent cart and checkout with server-side price validation.
+- Flitt and Bank of Georgia hosted payments, plus an in-app payment simulator.
+- Quickshipper integration, confirmation emails and shipping emails.
+- Password-protected order administration at `/{locale}/admin`.
+- Order lookup at `/{locale}/track`, localized metadata and a sitemap.
 
-## Quick start
+## Local setup
+
+Use Node.js 20.9 or newer. Sharp handles production image optimization.
 
 ```bash
-npm install
-cp .env.example .env      # a working sandbox .env is already included
-npm run setup             # prisma generate + db push + seed catalog
-npm run dev               # http://localhost:3000  (redirects to /ka)
+npm ci
+cp .env.example .env
 ```
 
-`npm run setup` is a shortcut for `prisma generate && prisma db push && npm run db:seed`.
+Set `DATABASE_URL` in `.env` to a **development Neon Postgres database**. The schema
+already uses Postgres, and the application runtime uses Neon's WebSocket/HTTP
+adapter. A plain local Postgres server is not supported by that adapter without
+additional configuration. No database credentials or working `.env` are included.
 
-## Testing the purchase flow (sandbox)
+Set `ADMIN_PASSWORD` and `ADMIN_SESSION_SECRET` to enable admin login. Generate a
+session secret with:
 
-1. Add items to the cart and go to **Checkout**.
-2. Fill contact/shipping details, choose TBC or BOG, and pay.
-3. You're sent to a **mock payment page** — click *Payment received* or *Payment failed*.
-4. On success the order is marked **paid** and a Quickshipper tracking code is generated.
-5. A trilingual confirmation email is generated (logged to the dev console — no SMTP needed).
-6. View all orders at `/{locale}/admin` — sign in with `ADMIN_USERNAME` / `ADMIN_PASSWORD` from `.env` (defaults: `admin` / `aserti-admin-dev`).
-
-## Deployment
-
-Production runs on **Postgres** (SQLite is dev-only). Full instructions —
-switching the datasource, migrations, Vercel/VPS steps, and a go-live checklist —
-are in **[DEPLOYMENT.md](DEPLOYMENT.md)**, with a production env template in
-[.env.production.example](.env.production.example).
-
-## Going live (payments)
-
-Edit `.env`:
-
-```env
-PAYMENTS_MODE="live"
-
-FLITT_MERCHANT_ID=1549901   FLITT_SECRET_KEY=test   # public Flitt test merchant
-BOG_CLIENT_ID=...     BOG_CLIENT_SECRET=...
-
-QUICKSHIPPER_API_KEY=...   QUICKSHIPPER_SECRET=...
-QUICKSHIPPER_SENDER_PHONE=...   QUICKSHIPPER_SENDER_ADDRESS=...
-
-NEXT_PUBLIC_BASE_URL="https://your-domain.ge"   # used for payment callback/return URLs
-ADMIN_USERNAME="admin"   ADMIN_PASSWORD="a-strong-password"   ADMIN_SESSION_SECRET="<random hex>"
-
-# Email (order confirmations)
-SMTP_HOST=...   SMTP_PORT=587   SMTP_USER=...   SMTP_PASS=...
-SMTP_FROM="ASERTI STORE <orders@your-domain.ge>"
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
-If `PAYMENTS_MODE=live` but a provider's credentials are missing, that provider safely
-falls back to sandbox (logged as a warning) so checkout never hard-fails.
+Initialize your development database and start the application:
 
-> **Verify endpoints before launch.** The exact TBC / BOG / Quickshipper API paths and
-> payload shapes are centralised in `src/lib/payments/*` and `src/lib/shipping/quickshipper.ts`
-> with comments. Confirm them against your merchant onboarding docs, then test against each
-> provider's sandbox environment.
+```bash
+npm run db:deploy
+npm run db:seed
+npm run dev
+```
 
-### Payment flow (live)
+Open `http://localhost:3000` (redirects to `/ka`). `npm run setup` remains a shortcut
+for Prisma generation, `db push` and seeding on a disposable development database.
+Use the checked-in migrations via `db:deploy` for deployed databases. Seeding
+updates existing catalog records, so run it intentionally.
 
-1. `POST /api/checkout` creates a pending order and asks the gateway for a redirect URL.
-2. Customer pays on the bank's hosted page and is returned to `/{locale}/order/{reference}`.
-3. The bank calls `POST /api/payments/{tbc|bog}/callback?ref=...`; we re-query the provider
-   for the authoritative status, mark the order paid, and create the Quickshipper shipment.
-4. The order page also re-checks status on load, so it's correct even if the webhook is delayed.
+## Testing a purchase locally
+
+Leave `FLITT_MERCHANT_ID`, `FLITT_SECRET_KEY`, `BOG_CLIENT_ID`,
+`BOG_CLIENT_SECRET`, `QUICKSHIPPER_API_KEY` and `SMTP_HOST` empty for a simulated
+purchase with no bank, courier or email delivery calls.
+
+**Current behavior:** gateway selection depends on credentials. `PAYMENTS_MODE`
+is present in the environment templates but is not enforced by the application;
+setting it to `sandbox` does not prevent real provider calls when credentials exist.
+
+1. Add a product, complete checkout and choose Flitt or BOG.
+2. With no payment credentials, the application opens its mock payment page.
+3. Simulate failure: the basket remains available through the retry link.
+4. Retry and simulate success: the confirmed order page removes the purchased
+   quantities from the basket, preserving additional quantities and other items.
+5. Reload the order page: it must not remove any items again.
+6. Inspect the order in `/{locale}/admin`. Without courier credentials, the tracking
+   code is simulated; without SMTP, email content is logged on the server.
+
+Cart recovery requires browser storage. Cart prices are display snapshots; the
+server always calculates the actual order total from the database.
+
+## Verification
+
+```bash
+npm test             # cart recovery, storage validation and quantity regressions
+npm run typecheck
+npm run build
+```
+
+These checks do not require database credentials. Testing catalog pages, order
+creation and fulfillment end to end requires a configured development database.
+The inherited `npm run lint` command still requires an ESLint configuration.
+
+## Deployment and remaining work
+
+See [DEPLOYMENT.md](DEPLOYMENT.md) and [DEPLOY_VERCEL.md](DEPLOY_VERCEL.md).
+The build generates Prisma Client and builds Next.js; it **does not migrate or
+seed the database**. Run those operations explicitly against your intended database.
+
+See [PROJECT_REVIEW.md](PROJECT_REVIEW.md) for the initial code review, outstanding
+payment/fulfillment issues and dependency audit findings.
 
 ## Project layout
 
-```
-prisma/
-  schema.prisma            # Product, Order, OrderItem
-  seed.ts                  # seeds catalog from src/data/catalog.ts
-src/
-  data/catalog.ts          # canonical product data (ka/en/ru)
-  i18n/                    # locale config + dictionaries (ka, en, ru)
-  lib/
-    products.ts            # localized product queries
-    orders.ts             # order creation, paid→shipment→email, references
-    money.ts              # GEL formatting + shipping rules
-    auth.ts               # admin session cookie (HMAC-signed)
-    email.ts              # nodemailer transport (SMTP or dev console)
-    emails/templates.ts   # trilingual order-confirmation email
-    payments/             # flitt.ts, bog.ts, sandbox.ts, index.ts (gateway selector)
-    shipping/quickshipper.ts
-  components/              # Header, Footer, Cart, Checkout, ProductCard, ProductGallery, …
-  app/
-    [locale]/             # home, shop, product, cart, checkout, order, about, admin(+login), sandbox
-    api/                  # checkout, payments callback, sandbox complete
-```
+- `prisma/`: Postgres schema, migrations and catalog seeder.
+- `src/data/catalog.ts`: canonical product descriptions and prices.
+- `src/i18n/`: locale configuration and dictionaries.
+- `src/lib/cart.ts`: saved-cart validation and checkout reconciliation.
+- `src/lib/orders.ts`: order creation, payment and shipping transitions.
+- `src/lib/payments/`: Flitt, BOG and mock gateway implementations.
+- `src/lib/shipping/quickshipper.ts`: courier integration.
+- `src/components/`: storefront and checkout components.
+- `src/app/[locale]/`: storefront, checkout, tracking and administration pages.
+- `src/app/api/`: checkout and payment endpoints.
+- `test/`: automated regression tests.
 
-## Notes
+## Exhibition redesign
 
-- **Placeholder art:** products ship with elegant vector placeholders (per category). To use
-  real photos, add images to `/public` and reference them from `Product.images`.
-- **Database:** SQLite for development. For production, set `provider = "postgresql"` in
-  `prisma/schema.prisma` and point `DATABASE_URL` at Postgres, then `prisma db push`.
-- **Prices** are always recomputed on the server from the database at checkout — the client
-  cart is never trusted for pricing.
+The storefront now presents ASERTI as a world of objects, with Studio, 101,
+material studies and a separate object index. See [the art-direction and content
+guide](docs/ART_DIRECTION.md) for extension points, generated-asset provenance,
+contact configuration and the database-free local preview command.

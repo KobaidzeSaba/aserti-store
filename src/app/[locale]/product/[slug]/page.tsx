@@ -5,13 +5,11 @@ import type { Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 import { formatPrice, CURRENCY } from "@/lib/money";
 import { getBaseUrl } from "@/lib/baseUrl";
-import {
-  getProductBySlug,
-  getProductsByCategory,
-} from "@/lib/products";
+import { getProductBySlug, getProductsByCategory } from "@/lib/products";
 import { ProductGallery } from "@/components/ProductGallery";
 import { ProductPurchase } from "@/components/ProductPurchase";
 import { ProductCard } from "@/components/ProductCard";
+import { editorial, categoryLabel } from "@/lib/editorial";
 
 export const dynamic = "force-dynamic";
 
@@ -55,7 +53,25 @@ export default async function ProductPage({
     .filter((p) => p.slug !== product.slug)
     .slice(0, 4);
 
+  const t = editorial(locale);
+  const presentation = product.presentation;
   const specs: { label: string; value: string }[] = [
+    {
+      label: t.type,
+      value: presentation.type ?? categoryLabel(product.category, locale),
+    },
+    ...(presentation.year
+      ? [{ label: t.year, value: String(presentation.year) }]
+      : []),
+    ...(presentation.collection
+      ? [{ label: t.collection, value: presentation.collection }]
+      : []),
+    ...(presentation.edition
+      ? [{ label: t.edition, value: presentation.edition }]
+      : []),
+    ...(presentation.dimensions
+      ? [{ label: t.dimensions, value: presentation.dimensions }]
+      : []),
     { label: dict.product.model, value: product.models.join(", ") },
     { label: dict.product.material, value: product.material },
     ...(product.gem ? [{ label: dict.product.gem, value: product.gem }] : []),
@@ -89,67 +105,79 @@ export default async function ProductPage({
   };
 
   return (
-    <div className="container-x py-12">
+    <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c"),
+        }}
       />
-      <Link
-        href={`/${locale}/shop`}
-        className="text-xs uppercase tracking-luxe text-silver-muted hover:text-champagne"
-      >
-        ← {dict.product.backToShop}
-      </Link>
-
-      <div className="mt-8 grid gap-12 lg:grid-cols-2">
-        <ProductGallery
-          category={product.category}
-          gem={product.gem}
-          images={product.images}
-          alt={product.name}
-        />
-
+      <div className="object-intro">
+        <div className="object-intro-top micro">
+          <Link href={`/${locale}/shop`}>← {t.back}</Link>
+          <span className="muted">{product.models[0]}</span>
+        </div>
+        <div className="object-title-row">
+          <h1>{presentation.title ?? product.name}</h1>
+          <p className="micro">
+            {presentation.year}
+            <br />
+            {product.material}
+            {product.gem ? ` / ${product.gem}` : ""}
+          </p>
+        </div>
+      </div>
+      <ProductGallery
+        category={product.category}
+        gem={product.gem}
+        images={product.images}
+        alt={product.name}
+        material={
+          product.gem
+            ? `${product.material} / ${product.gem}`
+            : product.material
+        }
+        detailLabel={t.detail}
+        video={presentation.video}
+      />
+      <section className="object-acquisition" aria-labelledby="object-details">
         <div>
-          <p className="text-xs uppercase tracking-luxe text-champagne">
-            {dict.product.inStock}
-          </p>
-          <h1 className="heading-serif mt-3 text-4xl text-silver">
-            {product.name}
-          </h1>
-          <p className="mt-4 text-2xl text-silver-muted">
-            {formatPrice(product.price, locale)}
-          </p>
-          <p className="mt-6 max-w-md leading-relaxed text-silver-muted">
-            {product.description}
-          </p>
-
-          <dl className="mt-8 divide-y divide-silver-muted/10 border-y border-silver-muted/10">
-            {specs.map((s) => (
-              <div key={s.label} className="flex justify-between py-3 text-sm">
-                <dt className="uppercase tracking-luxe text-silver-muted">
-                  {s.label}
-                </dt>
-                <dd className="text-silver">{s.value}</dd>
+          <h2 className="micro" id="object-details">
+            {t.details}
+          </h2>
+          <dl className="object-specs">
+            {specs.map((spec) => (
+              <div key={spec.label}>
+                <dt>{spec.label}</dt>
+                <dd>{spec.value}</dd>
               </div>
             ))}
           </dl>
-
-          <ProductPurchase locale={locale} dict={dict} product={product} />
         </div>
-      </div>
-
+        <div className="object-buy">
+          <div className="flex items-baseline justify-between gap-4">
+            <p className="object-price">{formatPrice(product.price, locale)}</p>
+            <span className="micro muted">{dict.product.inStock}</span>
+          </div>
+          <ProductPurchase locale={locale} dict={dict} product={product} />
+          <p className="object-description">{product.description}</p>
+        </div>
+      </section>
       {related.length > 0 && (
-        <section className="mt-24">
-          <h2 className="heading-serif text-2xl text-silver">
-            {dict.product.relatedTitle}
-          </h2>
-          <div className="mt-8 grid grid-cols-2 gap-x-6 gap-y-12 lg:grid-cols-4">
-            {related.map((p) => (
+        <section className="object-related">
+          <div className="section-heading">
+            <div>
+              <p className="micro section-index">CONTINUE EXPLORING</p>
+              <h2>{t.nextObjects}</h2>
+            </div>
+          </div>
+          <div className="object-related-grid">
+            {related.slice(0, 3).map((p) => (
               <ProductCard key={p.id} product={p} locale={locale} />
             ))}
           </div>
         </section>
       )}
-    </div>
+    </>
   );
 }

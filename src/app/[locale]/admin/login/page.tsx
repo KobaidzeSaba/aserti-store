@@ -28,7 +28,12 @@ export default function AdminLoginPage({
         <input type="hidden" name="locale" value={params.locale} />
         <div>
           <label className="label">Username</label>
-          <input name="username" className="field" autoComplete="username" defaultValue="admin" />
+          <input
+            name="username"
+            className="field"
+            autoComplete="username"
+            defaultValue="admin"
+          />
         </div>
         <div>
           <label className="label">Password</label>
@@ -41,7 +46,7 @@ export default function AdminLoginPage({
         </div>
 
         {hasError && (
-          <p className="rounded-sm border border-red-500/40 bg-red-500/10 px-4 py-2.5 text-sm text-red-300">
+          <p className="rounded-sm border border-red-500/40 bg-red-500/10 px-4 py-2.5 text-sm text-red-700">
             Invalid username or password.
           </p>
         )}

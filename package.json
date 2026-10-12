@@ -2,13 +2,15 @@
   "name": "aserti-store",
   "version": "1.0.0",
   "private": true,
-  "description": "ASERTI STORE — sterling silver jewelry e-commerce (TBC + BOG payments, Quickshipper shipping)",
+  "description": "ASERTI STORE \u2014 sterling silver jewelry e-commerce (TBC + BOG payments, Quickshipper shipping)",
   "scripts": {
     "dev": "next dev",
     "postinstall": "prisma generate",
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test test/*.test.ts",
     "prisma:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
@@ -27,6 +29,7 @@
     "nodemailer": "^6.10.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "sharp": "0.35.4",
     "ws": "^8.21.3",
     "zod": "^3.23.8"
   },
@@ -42,5 +45,8 @@
     "tailwindcss": "^3.4.7",
     "tsx": "^4.16.2",
     "typescript": "^5.5.4"
+  },
+  "engines": {
+    "node": ">=20.9.0"
   }
 }

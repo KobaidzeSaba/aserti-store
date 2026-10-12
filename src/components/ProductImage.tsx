@@ -21,7 +21,7 @@ export function ProductImage({
       className={className}
       style={{
         background:
-          "radial-gradient(120% 120% at 50% 20%, #252525 0%, #000000 70%)",
+          "radial-gradient(120% 120% at 50% 20%, #f6f5f0 0%, #ddddd5 70%)",
         ...style,
       }}
     >
@@ -53,7 +53,13 @@ function Gem({ cx, cy, r = 6 }: { cx: number; cy: number; r?: number }) {
     <g>
       <circle cx={cx} cy={cy} r={r} fill="url(#metal)" />
       <circle cx={cx} cy={cy} r={r} fill="url(#shine)" />
-      <circle cx={cx - r * 0.3} cy={cy - r * 0.3} r={r * 0.25} fill="#fff" opacity="0.85" />
+      <circle
+        cx={cx - r * 0.3}
+        cy={cy - r * 0.3}
+        r={r * 0.25}
+        fill="#fff"
+        opacity="0.85"
+      />
     </g>
   );
 }

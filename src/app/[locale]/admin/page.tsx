@@ -8,10 +8,10 @@ import { logout, markShipped } from "./actions";
 export const dynamic = "force-dynamic";
 
 const STATUS_STYLES: Record<string, string> = {
-  paid: "text-emerald-400",
+  paid: "text-emerald-700",
   shipped: "text-emerald-300",
   pending: "text-champagne",
-  failed: "text-red-300",
+  failed: "text-red-700",
   cancelled: "text-silver-muted",
 };
 
@@ -28,7 +28,9 @@ export default async function AdminPage({
     take: 200,
   });
 
-  const paidCount = orders.filter((o) => o.status === "paid" || o.status === "shipped").length;
+  const paidCount = orders.filter(
+    (o) => o.status === "paid" || o.status === "shipped",
+  ).length;
   const revenue = orders
     .filter((o) => o.status === "paid" || o.status === "shipped")
     .reduce((s, o) => s + o.total, 0);
@@ -37,7 +39,9 @@ export default async function AdminPage({
     <div className="mx-auto max-w-6xl px-6 py-14">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div className="flex items-center gap-4">
-          <h1 className="heading-serif text-3xl text-silver">ASERTI · Orders</h1>
+          <h1 className="heading-serif text-3xl text-silver">
+            ASERTI · Orders
+          </h1>
           <form action={logout}>
             <input type="hidden" name="locale" value={params.locale} />
             <button
@@ -50,16 +54,24 @@ export default async function AdminPage({
         </div>
         <div className="flex gap-8 text-sm">
           <div>
-            <div className="text-xs uppercase tracking-luxe text-silver-muted">Orders</div>
+            <div className="text-xs uppercase tracking-luxe text-silver-muted">
+              Orders
+            </div>
             <div className="text-xl text-silver">{orders.length}</div>
           </div>
           <div>
-            <div className="text-xs uppercase tracking-luxe text-silver-muted">Paid</div>
+            <div className="text-xs uppercase tracking-luxe text-silver-muted">
+              Paid
+            </div>
             <div className="text-xl text-silver">{paidCount}</div>
           </div>
           <div>
-            <div className="text-xs uppercase tracking-luxe text-silver-muted">Revenue</div>
-            <div className="text-xl text-champagne">{formatPrice(revenue, "en")}</div>
+            <div className="text-xs uppercase tracking-luxe text-silver-muted">
+              Revenue
+            </div>
+            <div className="text-xl text-champagne">
+              {formatPrice(revenue, "en")}
+            </div>
           </div>
         </div>
       </div>
@@ -93,13 +105,17 @@ export default async function AdminPage({
                   </div>
                 </td>
                 <td className="px-4 py-3 text-silver-muted">
-                  {o.items.map((i) => `${i.nameSnapshot}×${i.quantity}`).join(", ")}
+                  {o.items
+                    .map((i) => `${i.nameSnapshot}×${i.quantity}`)
+                    .join(", ")}
                 </td>
                 <td className="px-4 py-3">{formatPrice(o.total, "en")}</td>
                 <td className="px-4 py-3 uppercase text-silver-muted">
                   {o.paymentProvider || "—"}
                 </td>
-                <td className={`px-4 py-3 uppercase ${STATUS_STYLES[o.status] || ""}`}>
+                <td
+                  className={`px-4 py-3 uppercase ${STATUS_STYLES[o.status] || ""}`}
+                >
                   {o.status}
                 </td>
                 <td className="px-4 py-3 text-silver-muted">
@@ -108,8 +124,16 @@ export default async function AdminPage({
                 <td className="px-4 py-3">
                   {o.status === "paid" ? (
                     <form action={markShipped}>
-                      <input type="hidden" name="locale" value={params.locale} />
-                      <input type="hidden" name="reference" value={o.reference} />
+                      <input
+                        type="hidden"
+                        name="locale"
+                        value={params.locale}
+                      />
+                      <input
+                        type="hidden"
+                        name="reference"
+                        value={o.reference}
+                      />
                       <button
                         type="submit"
                         className="whitespace-nowrap rounded-none border border-silver-muted/50 px-3 py-1.5 text-xs uppercase tracking-luxe text-silver transition-colors hover:border-champagne hover:text-champagne"
@@ -127,7 +151,10 @@ export default async function AdminPage({
             ))}
             {orders.length === 0 && (
               <tr>
-                <td colSpan={9} className="px-4 py-10 text-center text-silver-muted">
+                <td
+                  colSpan={9}
+                  className="px-4 py-10 text-center text-silver-muted"
+                >
                   No orders yet.
                 </td>
               </tr>

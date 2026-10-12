@@ -20,7 +20,7 @@ export function CheckoutForm({
   /** Whether each provider will use the in-app sandbox mock (no real creds). */
   mock: Record<Provider, boolean>;
 }) {
-  const { items, subtotal, clear, ready } = useCart();
+  const { items, subtotal, rememberCheckout, ready } = useCart();
   const [provider, setProvider] = useState<Provider>("flitt");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -32,7 +32,9 @@ export function CheckoutForm({
     address: "",
     note: "",
   });
-  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(
+    null,
+  );
 
   const shipping = useMemo(() => shippingFor(subtotal), [subtotal]);
   const total = subtotal + shipping;
@@ -79,7 +81,7 @@ export function CheckoutForm({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || dict.common.error);
-      clear();
+      rememberCheckout(data.reference, items);
       window.location.href = data.redirectUrl as string;
     } catch (err) {
       setError(err instanceof Error ? err.message : dict.common.error);
@@ -88,7 +90,11 @@ export function CheckoutForm({
   }
 
   if (!ready) {
-    return <p className="py-20 text-center text-silver-muted">{dict.common.loading}</p>;
+    return (
+      <p className="py-20 text-center text-silver-muted">
+        {dict.common.loading}
+      </p>
+    );
   }
 
   if (items.length === 0) {
@@ -112,8 +118,11 @@ export function CheckoutForm({
           </h2>
           <div className="mt-5 grid gap-4 sm:grid-cols-2">
             <div className="sm:col-span-2">
-              <label className="label">{dict.checkout.fullName}</label>
+              <label className="label" htmlFor="checkout-name">
+                {dict.checkout.fullName}
+              </label>
               <input
+                id="checkout-name"
                 className="field"
                 value={form.customerName}
                 onChange={(e) => update("customerName", e.target.value)}
@@ -121,8 +130,11 @@ export function CheckoutForm({
               />
             </div>
             <div>
-              <label className="label">{dict.checkout.email}</label>
+              <label className="label" htmlFor="checkout-email">
+                {dict.checkout.email}
+              </label>
               <input
+                id="checkout-email"
                 className="field"
                 type="email"
                 value={form.email}
@@ -131,8 +143,12 @@ export function CheckoutForm({
               />
             </div>
             <div>
-              <label className="label">{dict.checkout.phone}</label>
+              <label className="label" htmlFor="checkout-phone">
+                {dict.checkout.phone}
+              </label>
               <input
+                id="checkout-phone"
+                type="tel"
                 className="field"
                 value={form.phone}
                 onChange={(e) => update("phone", e.target.value)}
@@ -149,8 +165,11 @@ export function CheckoutForm({
           </h2>
           <div className="mt-5 grid gap-4 sm:grid-cols-2">
             <div>
-              <label className="label">{dict.checkout.city}</label>
+              <label className="label" htmlFor="checkout-city">
+                {dict.checkout.city}
+              </label>
               <input
+                id="checkout-city"
                 className="field"
                 value={form.city}
                 onChange={(e) => update("city", e.target.value)}
@@ -158,8 +177,11 @@ export function CheckoutForm({
               />
             </div>
             <div>
-              <label className="label">{dict.checkout.address}</label>
+              <label className="label" htmlFor="checkout-address">
+                {dict.checkout.address}
+              </label>
               <AddressAutocomplete
+                id="checkout-address"
                 className="field"
                 value={form.address}
                 verified={coords !== null}
@@ -181,8 +203,11 @@ export function CheckoutForm({
               />
             </div>
             <div className="sm:col-span-2">
-              <label className="label">{dict.checkout.note}</label>
+              <label className="label" htmlFor="checkout-note">
+                {dict.checkout.note}
+              </label>
               <textarea
+                id="checkout-note"
                 className="field min-h-20"
                 value={form.note}
                 onChange={(e) => update("note", e.target.value)}
@@ -238,7 +263,10 @@ export function CheckoutForm({
         </h2>
         <ul className="mt-5 space-y-3 text-sm">
           {items.map((i) => (
-            <li key={`${i.slug}-${i.size ?? ""}`} className="flex justify-between gap-3">
+            <li
+              key={`${i.slug}-${i.size ?? ""}`}
+              className="flex justify-between gap-3"
+            >
               <span className="text-silver-muted">
                 {i.name}
                 {i.size ? ` · ${i.size}` : ""} × {i.quantity}
@@ -269,12 +297,16 @@ export function CheckoutForm({
         </dl>
 
         {error && (
-          <p className="mt-4 rounded-sm border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+          <p className="mt-4 rounded-sm border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-700">
             {error}
           </p>
         )}
 
-        <button type="submit" disabled={submitting} className="btn-gold mt-6 w-full">
+        <button
+          type="submit"
+          disabled={submitting}
+          className="btn-gold mt-6 w-full"
+        >
           {submitting
             ? dict.checkout.processing
             : `${dict.checkout.placeOrder} · ${formatPrice(total, locale)}`}

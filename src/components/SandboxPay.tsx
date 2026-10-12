@@ -19,19 +19,23 @@ export function SandboxPay({
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState<null | "success" | "fail">(null);
+  const [error, setError] = useState(false);
 
   async function complete(outcome: "success" | "fail") {
     setBusy(outcome);
+    setError(false);
     try {
-      await fetch("/api/sandbox/complete", {
+      const response = await fetch("/api/sandbox/complete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ref: reference, outcome }),
       });
+      if (!response.ok) throw new Error("Payment simulation failed");
+      router.push(`/${locale}/order/${reference}`);
     } catch {
-      /* ignore — still route to the order page which shows real status */
+      setError(true);
+      setBusy(null);
     }
-    router.push(`/${locale}/order/${reference}`);
   }
 
   return (
@@ -45,7 +49,9 @@ export function SandboxPay({
 
       <div className="mt-6 space-y-2 rounded-sm border border-silver-muted/15 bg-ink p-5 text-sm">
         <div className="flex justify-between">
-          <span className="text-silver-muted">{dict.confirmation.reference}</span>
+          <span className="text-silver-muted">
+            {dict.confirmation.reference}
+          </span>
           <span className="text-silver">{reference}</span>
         </div>
         <div className="flex justify-between">
@@ -58,6 +64,12 @@ export function SandboxPay({
         {dict.checkout.sandboxNote}
       </p>
 
+      {error && (
+        <p role="alert" className="mt-5 text-sm text-red-700">
+          {dict.common.error}
+        </p>
+      )}
+
       <div className="mt-6 grid gap-3">
         <button
           type="button"
@@ -65,7 +77,9 @@ export function SandboxPay({
           onClick={() => complete("success")}
           className="btn-gold w-full"
         >
-          {busy === "success" ? dict.checkout.processing : `✓ ${dict.confirmation.paid}`}
+          {busy === "success"
+            ? dict.checkout.processing
+            : `✓ ${dict.confirmation.paid}`}
         </button>
         <button
           type="button"
@@ -73,7 +87,9 @@ export function SandboxPay({
           onClick={() => complete("fail")}
           className="btn-outline w-full"
         >
-          {busy === "fail" ? dict.checkout.processing : `✕ ${dict.confirmation.failed}`}
+          {busy === "fail"
+            ? dict.checkout.processing
+            : `✕ ${dict.confirmation.failed}`}
         </button>
       </div>
     </div>
