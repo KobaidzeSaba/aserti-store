@@ -9,8 +9,7 @@ import type {
 /**
  * Sandbox gateway — no real bank calls.
  * Redirects the customer to an in-app mock payment page where they can
- * simulate a successful or failed payment. Used when PAYMENTS_MODE !== "live"
- * or when live credentials are not configured.
+ * simulate a successful or failed payment. Used only when PAYMENTS_MODE is explicitly "sandbox".
  */
 export const sandboxGateway: PaymentGateway = {
   provider: "sandbox",

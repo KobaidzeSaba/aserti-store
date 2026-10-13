@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { markOrderFailed, markOrderPaid } from "@/lib/orders";
 
+import { paymentMode } from "@/lib/integrationConfig";
+
 /**
  * Completes a simulated (sandbox) payment.
  *
@@ -11,6 +13,7 @@ import { markOrderFailed, markOrderPaid } from "@/lib/orders";
  * real-money order paid.
  */
 export async function POST(req: NextRequest) {
+  if (paymentMode() !== "sandbox") return NextResponse.json({ error: "Sandbox disabled" }, { status: 403 });
   let body: { ref?: string; outcome?: string };
   try {
     body = await req.json();

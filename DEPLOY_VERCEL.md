@@ -12,16 +12,15 @@
    npm run db:seed
    ```
 
-5. Deploy with `npm run build`. The build does not run migrations or seed products.
+5. Deploy with `npm run build`. Vercel production builds apply migrations; they never seed products.
 6. Set `NEXT_PUBLIC_BASE_URL` to the deployment's intended public URL before testing
    payment redirects (Vercel's hostname is used as a fallback).
 7. Test the storefront, failed-payment retry, successful-payment cart reconciliation
-   and admin dashboard. Leave all payment, courier and SMTP credentials empty for
-   the in-app simulation. Simulated tracking codes are not real courier shipments.
+   and admin dashboard. Use `PAYMENTS_MODE=sandbox` for in-app simulation.
+   Sandbox orders never send emails or dispatch shipments.
 
-The current application chooses integrations by credentials, not `PAYMENTS_MODE`.
-Adding Flitt or BOG credentials enables that provider even if the environment says
-`sandbox`; adding courier or SMTP credentials enables those integrations too.
+Production integrations require explicit activation and valid credentials.
+See [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md) for settings and recovery.
 
 See [DEPLOYMENT.md](DEPLOYMENT.md) for configuration details and
 [PROJECT_REVIEW.md](PROJECT_REVIEW.md) for the payment/fulfillment and dependency
@@ -34,7 +33,7 @@ issues that need resolution before live sales.
 - Missing tables: run `npm run db:deploy` against the correct database.
 - Empty catalog: run the seed intentionally; it updates existing seeded records.
 - Admin login failure: verify `ADMIN_PASSWORD` and the signing secret, then redeploy.
-- No email received: without `SMTP_HOST`, emails are logged on the server.
+- No email received: check `EMAIL_MODE`, SMTP settings and the admin integration jobs panel.
 
 ## Current redesign deployment
 

@@ -95,3 +95,18 @@ model OrderItem {
   quantity     Int     @default(1)
   lineTotal    Float
 }
+
+// Durable, atomically claimed side effects. Never automatically retry an
+// uncertain courier result: the provider may already have accepted the parcel.
+model IntegrationJob {
+  id        String @id @default(cuid())
+  reference String
+  kind      String
+  status    String @default("pending")
+  attempts  Int @default(0)
+  lastError String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([reference, kind])
+  @@index([status, createdAt])
+}

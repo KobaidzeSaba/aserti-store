@@ -50,22 +50,17 @@ updates existing catalog records, so run it intentionally.
 
 ## Testing a purchase locally
 
-Leave `FLITT_MERCHANT_ID`, `FLITT_SECRET_KEY`, `BOG_CLIENT_ID`,
-`BOG_CLIENT_SECRET`, `QUICKSHIPPER_API_KEY` and `SMTP_HOST` empty for a simulated
-purchase with no bank, courier or email delivery calls.
-
-**Current behavior:** gateway selection depends on credentials. `PAYMENTS_MODE`
-is present in the environment templates but is not enforced by the application;
-setting it to `sandbox` does not prevent real provider calls when credentials exist.
+Set `PAYMENTS_MODE=sandbox` explicitly. Sandbox orders never call the courier or
+send customer emails, even when credentials exist. Missing live credentials disable
+checkout rather than falling back to a simulated payment.
 
 1. Add a product, complete checkout and choose Flitt or BOG.
-2. With no payment credentials, the application opens its mock payment page.
+2. In explicit sandbox mode, the application opens its mock payment page.
 3. Simulate failure: the basket remains available through the retry link.
 4. Retry and simulate success: the confirmed order page removes the purchased
    quantities from the basket, preserving additional quantities and other items.
 5. Reload the order page: it must not remove any items again.
-6. Inspect the order in `/{locale}/admin`. Without courier credentials, the tracking
-   code is simulated; without SMTP, email content is logged on the server.
+6. Inspect the order in `/{locale}/admin`. Sandbox orders have no shipment or email jobs.
 
 Cart recovery requires browser storage. Cart prices are display snapshots; the
 server always calculates the actual order total from the database.
@@ -85,8 +80,9 @@ The inherited `npm run lint` command still requires an ESLint configuration.
 ## Deployment and remaining work
 
 See [DEPLOYMENT.md](DEPLOYMENT.md) and [DEPLOY_VERCEL.md](DEPLOY_VERCEL.md).
-The build generates Prisma Client and builds Next.js; it **does not migrate or
-seed the database**. Run those operations explicitly against your intended database.
+The build generates Prisma Client and builds Next.js. Vercel production builds also
+apply checked-in migrations; builds never seed products. See
+[docs/INTEGRATIONS.md](docs/INTEGRATIONS.md) for activation and recovery.
 
 See [PROJECT_REVIEW.md](PROJECT_REVIEW.md) for the initial code review, outstanding
 payment/fulfillment issues and dependency audit findings.

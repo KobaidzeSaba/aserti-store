@@ -51,3 +51,12 @@ export async function markShipped(formData: FormData): Promise<void> {
   }
   revalidatePath(`/${locale}/admin`);
 }
+
+export async function retryJob(formData: FormData): Promise<void> {
+  const localeRaw = String(formData.get("locale") || "en");
+  const locale = isLocale(localeRaw) ? localeRaw : "en";
+  if (!isAuthenticated()) redirect(`/${locale}/admin/login`);
+  const { retryIntegrationJob } = await import("@/lib/integrationJobs");
+  try { await retryIntegrationJob(String(formData.get("jobId") || ""), formData.get("reconciled") === "on"); } catch { /* State and recovery instructions remain visible in the dashboard. */ }
+  revalidatePath(`/${locale}/admin`);
+}

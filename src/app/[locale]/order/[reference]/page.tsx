@@ -4,7 +4,7 @@ import type { Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 import { prisma } from "@/lib/prisma";
 import { formatPrice } from "@/lib/money";
-import { getGateway, type PaymentProvider } from "@/lib/payments";
+import { getStoredGateway } from "@/lib/payments";
 import { markOrderFailed, markOrderPaid } from "@/lib/orders";
 import { PaidOrderCartSync } from "@/components/PaidOrderCartSync";
 
@@ -32,8 +32,8 @@ export default async function OrderPage({
     (order.paymentProvider === "flitt" || order.paymentProvider === "bog")
   ) {
     try {
-      const gateway = getGateway(order.paymentProvider as PaymentProvider);
-      const status = await gateway.getStatus(order.paymentId, order.reference);
+      const gateway = getStoredGateway(order.paymentProvider);
+      const status = await gateway.getStatus(order.paymentId, order.reference, { amount: order.total, currency: order.currency });
       if (status === "paid") await markOrderPaid(reference, order.paymentId);
       else if (status === "failed") await markOrderFailed(reference);
       order = await prisma.order.findUnique({

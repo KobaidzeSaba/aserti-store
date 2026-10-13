@@ -1,7 +1,8 @@
+import { verifyCallback } from "@/lib/payments/callbackSignature";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { markOrderFailed, markOrderPaid } from "@/lib/orders";
-import { getGateway, type PaymentProvider } from "@/lib/payments";
+import { getStoredGateway } from "@/lib/payments";
 
 /**
  * Server-to-server payment callback from TBC / BOG.
@@ -18,6 +19,8 @@ async function handle(
     return NextResponse.json({ error: "Unknown provider" }, { status: 404 });
   }
 
+  const raw = await req.text();
+  if (raw.length > 65536 || !verifyCallback(provider, raw, req.headers.get("content-type") || "", req.headers.get("callback-signature"))) return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
   const ref = req.nextUrl.searchParams.get("ref");
   if (!ref) {
     return NextResponse.json({ error: "Missing ref" }, { status: 400 });
@@ -28,15 +31,18 @@ async function handle(
     return NextResponse.json({ error: "Order not found" }, { status: 404 });
   }
 
+  if (order.paymentProvider !== provider) return NextResponse.json({ error: "Provider mismatch" }, { status: 409 });
+
   // Already finalised — acknowledge idempotently.
   if (order.status === "paid" || order.status === "shipped") {
+    try { await markOrderPaid(ref, order.paymentId || undefined); } catch { return NextResponse.json({ ok: false }, { status: 503 }); }
     return NextResponse.json({ ok: true, status: order.status });
   }
 
   try {
     if (!order.paymentId) throw new Error("Order has no provider payment id");
-    const gateway = getGateway(provider as PaymentProvider);
-    const status = await gateway.getStatus(order.paymentId, order.reference);
+    const gateway = getStoredGateway(provider);
+    const status = await gateway.getStatus(order.paymentId, order.reference, { amount: order.total, currency: order.currency });
 
     if (status === "paid") {
       await markOrderPaid(ref, order.paymentId);
@@ -46,19 +52,12 @@ async function handle(
     return NextResponse.json({ ok: true, status });
   } catch (err) {
     console.error(`[${provider}] callback error:`, err);
-    // Return 200 so the bank does not hammer retries; we can reconcile later.
-    return NextResponse.json({ ok: false });
+    // Ask the provider to retry transient failures.
+    return NextResponse.json({ ok: false }, { status: 503 });
   }
 }
 
 export async function POST(
-  req: NextRequest,
-  { params }: { params: { provider: string } },
-) {
-  return handle(req, params);
-}
-
-export async function GET(
   req: NextRequest,
   { params }: { params: { provider: string } },
 ) {

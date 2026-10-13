@@ -9,18 +9,19 @@ import {
 
 let cached: Transporter | null = null;
 
-/**
- * Returns a nodemailer transport. If SMTP is configured (SMTP_HOST), a real
- * SMTP transport is used. Otherwise a JSON transport is used which does NOT
- * send anything — the message is logged to the server console so the flow
- * works in development without an email provider.
- */
+/** Explicit live delivery only; durable jobs record disabled/failed email work. */
 function getTransport(): { transport: Transporter; live: boolean } {
+  if (process.env.EMAIL_MODE !== "live") throw new Error("Email delivery disabled");
+  if (!smtpConfigured()) throw new Error("SMTP configuration incomplete");
   if (cached) return { transport: cached, live: smtpConfigured() };
 
   if (smtpConfigured()) {
     cached = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 15000,
+      requireTLS: Number(process.env.SMTP_PORT || 587) !== 465,
       port: Number(process.env.SMTP_PORT || 587),
       secure: Number(process.env.SMTP_PORT) === 465,
       auth:
@@ -31,16 +32,15 @@ function getTransport(): { transport: Transporter; live: boolean } {
     return { transport: cached, live: true };
   }
 
-  cached = nodemailer.createTransport({ jsonTransport: true });
-  return { transport: cached, live: false };
+  throw new Error("SMTP configuration incomplete");
 }
 
 function smtpConfigured(): boolean {
-  return Boolean(process.env.SMTP_HOST);
+  return Boolean(process.env.SMTP_HOST && process.env.SMTP_FROM);
 }
 
 function fromAddress(): string {
-  return process.env.SMTP_FROM || "ASERTI STORE <no-reply@aserti.store>";
+  return process.env.SMTP_FROM!;
 }
 
 async function send(
@@ -50,9 +50,9 @@ async function send(
   text: string,
   bcc?: string,
 ): Promise<void> {
-  const { transport, live } = getTransport();
+  const { transport } = getTransport();
   try {
-    const info = await transport.sendMail({
+    await transport.sendMail({
       from: fromAddress(),
       to: order.email,
       bcc,
@@ -60,17 +60,10 @@ async function send(
       text,
       html,
     });
-    if (!live) {
-      console.log(
-        `[email] (dev, not sent) order ${order.reference} → ${order.email}\n` +
-          `        subject: ${subject}`,
-      );
-    } else {
-      console.log(`[email] sent order ${order.reference} → ${order.email} (${info.messageId})`);
-    }
+
   } catch (err) {
-    // Never let email failure break order fulfilment.
-    console.error(`[email] failed for order ${order.reference}:`, err);
+    // The durable job records the failure without changing payment status.
+    throw new Error("Email delivery failed");
   }
 }
 

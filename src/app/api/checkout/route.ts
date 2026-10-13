@@ -3,7 +3,7 @@ import { z } from "zod";
 import { isLocale } from "@/i18n/config";
 import { prisma } from "@/lib/prisma";
 import { createOrder } from "@/lib/orders";
-import { getGateway, type PaymentProvider } from "@/lib/payments";
+import { getGateway, PaymentConfigError, type PaymentProvider } from "@/lib/payments";
 import { getBaseUrl } from "@/lib/baseUrl";
 import { MAX_CART_QUANTITY } from "@/lib/cart";
 import { isCatalogPreview } from "@/lib/products";
@@ -29,7 +29,7 @@ const schema = z.object({
         quantity: z.number().int().min(1).max(MAX_CART_QUANTITY),
       }),
     )
-    .min(1),
+    .min(1).max(50),
 });
 
 export async function POST(req: NextRequest) {
@@ -60,13 +60,14 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    const gateway = getGateway(provider as PaymentProvider);
     const { order } = await createOrder({ items, customer, locale });
 
     const base = getBaseUrl(req);
     const returnUrl = `${base}/${locale}/order/${order.reference}`;
     const callbackUrl = `${base}/api/payments/${provider}/callback?ref=${order.reference}`;
 
-    const gateway = getGateway(provider as PaymentProvider);
+    await prisma.order.update({ where: { id: order.id }, data: { paymentProvider: gateway.provider } });
 
     const payment = await gateway.createPayment({
       orderId: order.id,
@@ -98,6 +99,7 @@ export async function POST(req: NextRequest) {
       redirectUrl: payment.redirectUrl,
     });
   } catch (err) {
+    if (err instanceof PaymentConfigError) return NextResponse.json({ error: "Online payment is temporarily unavailable." }, { status: 503 });
     // Log details server-side; return a generic message so internal errors
     // (DB, provider, stack details) are never disclosed to the client.
     console.error("Checkout error:", err);

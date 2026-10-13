@@ -1,6 +1,6 @@
 import type { Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
-import { isMockProvider } from "@/lib/payments";
+import { isMockProvider, providerAvailable } from "@/lib/payments";
 import { CheckoutForm } from "@/components/CheckoutForm";
 import { isCatalogPreview } from "@/lib/products";
 import { editorial } from "@/lib/editorial";
@@ -30,6 +30,7 @@ export default function CheckoutPage({
         <CheckoutForm
           locale={params.locale}
           dict={dict}
+          available={{ flitt: providerAvailable("flitt"), bog: providerAvailable("bog") }}
           mock={{ flitt: isMockProvider("flitt"), bog: isMockProvider("bog") }}
         />
       </div>

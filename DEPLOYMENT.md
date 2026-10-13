@@ -31,9 +31,10 @@ migration or change the schema provider.
 - `QUICKSHIPPER_API_KEY` and pickup/account settings: courier integration.
 - `SMTP_*`: confirmation and shipping emails.
 
-The current implementation selects real integrations when credentials exist.
-`PAYMENTS_MODE` is not enforced, and missing payment credentials enable the mock
-checkout. Leave payment, shipping and SMTP credentials empty for a local simulation.
+Use explicit `PAYMENTS_MODE=sandbox|live`, `SHIPPING_MODE=manual|live` and
+`EMAIL_MODE=disabled|live`. Missing live payment credentials disable checkout.
+Sandbox orders never dispatch couriers or customer emails. See
+[docs/INTEGRATIONS.md](docs/INTEGRATIONS.md) for required settings and recovery.
 
 ## Vercel
 
@@ -41,7 +42,7 @@ checkout. Leave payment, shipping and SMTP credentials empty for a local simulat
 2. Configure environment variables for the intended deployment environment.
 3. Run migrations and initial seeding explicitly against its database.
 4. Use `npm run build` as the build command. It generates Prisma Client and builds
-   Next.js; it does not migrate or seed.
+   Next.js; Vercel production builds apply migrations but never seed.
 5. Verify the storefront and a complete simulated purchase before configuring
    provider credentials.
 

@@ -63,3 +63,12 @@ Configure an isolated development Neon database, run the checked-in migrations,
 seed the catalog, and exercise the failed-payment retry and successful-payment
 flows in all three locales. Test real integrations with their provider test
 credentials only after sandbox/live isolation is implemented.
+
+## Integration follow-up — 2026-10-13
+
+Items 1–4 above are addressed by explicit mode selection, transactional settlement,
+unique durable jobs, truthful courier failures, signed/provider-bound callbacks,
+and retryable status lookups. Checkout size and basket bounds are now validated.
+See `docs/INTEGRATIONS.md` for remaining activation requirements and operational
+limits. Framework dependency upgrades remain separate outstanding work; passing
+integration tests does not resolve the previously reported Next.js advisories.

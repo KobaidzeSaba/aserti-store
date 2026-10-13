@@ -3,7 +3,9 @@ import type { Locale } from "@/i18n/config";
 import { prisma } from "@/lib/prisma";
 import { formatPrice } from "@/lib/money";
 import { isAuthenticated } from "@/lib/auth";
-import { logout, markShipped } from "./actions";
+import { logout, markShipped, retryJob } from "./actions";
+
+import { integrationStatus } from "@/lib/integrationConfig";
 
 export const dynamic = "force-dynamic";
 
@@ -28,6 +30,8 @@ export default async function AdminPage({
     take: 200,
   });
 
+  const integrations = integrationStatus();
+  const jobs = await prisma.integrationJob.findMany({ where: { status: { not: "succeeded" } }, orderBy: { createdAt: "asc" }, take: 100 });
   const paidCount = orders.filter(
     (o) => o.status === "paid" || o.status === "shipped",
   ).length;
@@ -76,6 +80,21 @@ export default async function AdminPage({
         </div>
       </div>
 
+      <section className="mt-8 border p-5">
+        <h2 className="text-xl">Integrations</h2>
+        <dl className="mt-4 grid gap-2 sm:grid-cols-2">{Object.entries(integrations).map(([key, value]) => <div key={key}><dt className="inline font-medium">{key}: </dt><dd className="inline">{typeof value === "boolean" ? value ? "Configured (not verified)" : "Not configured" : value}</dd></div>)}</dl>
+        <p className="mt-3 text-sm">Sandbox payments never create shipments or send customer emails. Configuration does not confirm account activation.</p>
+      </section>
+      {jobs.length > 0 && <section className="mt-8 border p-5">
+        <h2 className="text-xl">Integration work requiring attention</h2>
+        {jobs.map(job => <form key={job.id} action={retryJob} className="mt-4 border-t pt-4">
+          <p>{job.reference} · {job.kind} · {job.status} · attempts: {job.attempts}</p>
+          <p className="text-sm">{job.lastError}</p>
+          <input type="hidden" name="locale" value={params.locale}/><input type="hidden" name="jobId" value={job.id}/>
+          {["processing", "review"].includes(job.status) && <label className="my-2 block text-sm"><input type="checkbox" name="reconciled" required/> I checked the provider and confirmed this operation did not already succeed.</label>}
+          <button className="mt-2 border px-3 py-2" type="submit">Retry integration</button>
+        </form>)}
+      </section>}
       <div className="mt-8 overflow-x-auto rounded-sm border border-silver-muted/15">
         <table className="w-full min-w-[820px] text-left text-sm">
           <thead className="border-b border-silver-muted/15 text-xs uppercase tracking-luxe text-silver-muted">
@@ -122,7 +141,7 @@ export default async function AdminPage({
                   {o.trackingCode || "—"}
                 </td>
                 <td className="px-4 py-3">
-                  {o.status === "paid" ? (
+                  {o.status === "paid" && o.shipmentId && o.paymentProvider !== "sandbox" ? (
                     <form action={markShipped}>
                       <input
                         type="hidden"

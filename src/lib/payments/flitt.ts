@@ -81,10 +81,11 @@ export const flittGateway: PaymentGateway = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ request }),
       cache: "no-store",
+      signal: AbortSignal.timeout(12000),
     });
 
     if (!res.ok) {
-      throw new Error(`Flitt create failed: ${res.status} ${await res.text()}`);
+      throw new Error(`Flitt create failed: ${res.status}`);
     }
 
     const data = (await res.json()) as {
@@ -97,7 +98,7 @@ export const flittGateway: PaymentGateway = {
     };
     const r = data.response;
     if (r?.response_status !== "success" || !r.checkout_url) {
-      throw new Error(`Flitt error: ${r?.error_message || JSON.stringify(data)}`);
+      throw new Error("Flitt checkout unavailable");
     }
 
     return {
@@ -106,7 +107,7 @@ export const flittGateway: PaymentGateway = {
     };
   },
 
-  async getStatus(_providerPaymentId, reference): Promise<PaymentStatus> {
+  async getStatus(_providerPaymentId, reference, expected): Promise<PaymentStatus> {
     const { merchantId, secret } = requireCreds();
 
     const request: Record<string, string | number> = {
@@ -120,12 +121,20 @@ export const flittGateway: PaymentGateway = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ request }),
       cache: "no-store",
+      signal: AbortSignal.timeout(12000),
     });
-    if (!res.ok) return "pending";
+    if (!res.ok) throw new Error(`Payment status unavailable (${res.status})`);
 
     const data = (await res.json()) as {
-      response?: { order_status?: string; response_status?: string };
+      response?: Record<string, string | number>;
     };
-    return mapStatus(data.response?.order_status || "");
+    const response = data.response;
+    if (!response || response.response_status !== "success") throw new Error("Flitt status unavailable");
+    const signature = String(response.signature || "");
+    const calculated = flittSignature(secret, response);
+    if (!/^[a-f0-9]{40}$/i.test(signature) || !crypto.timingSafeEqual(Buffer.from(signature.toLowerCase()), Buffer.from(calculated))) throw new Error("Invalid Flitt response signature");
+    if (String(response.order_id) !== reference || Number(response.merchant_id) !== merchantId) throw new Error("Flitt receipt identity mismatch");
+    if (expected && (Number(response.amount) !== Math.round(expected.amount * 100) || response.currency !== expected.currency)) throw new Error("Flitt receipt amount mismatch");
+    return mapStatus(String(response.order_status || ""));
   },
 };

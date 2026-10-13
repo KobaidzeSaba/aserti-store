@@ -38,7 +38,7 @@ export interface PaymentGateway {
    * @param providerPaymentId provider-side id (used by BOG's receipt endpoint)
    * @param reference our order reference (used by Flitt's status-by-order_id)
    */
-  getStatus(providerPaymentId: string, reference: string): Promise<PaymentStatus>;
+  getStatus(providerPaymentId: string, reference: string, expected?: { amount: number; currency: string }): Promise<PaymentStatus>;
 }
 
 export class PaymentConfigError extends Error {}

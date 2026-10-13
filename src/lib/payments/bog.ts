@@ -50,10 +50,11 @@ async function getAccessToken(): Promise<string> {
     },
     body: new URLSearchParams({ grant_type: "client_credentials" }),
     cache: "no-store",
+      signal: AbortSignal.timeout(12000),
   });
 
   if (!res.ok) {
-    throw new Error(`BOG auth failed: ${res.status} ${await res.text()}`);
+    throw new Error(`BOG auth failed: ${res.status}`);
   }
   const data = (await res.json()) as { access_token: string };
   return data.access_token;
@@ -89,14 +90,15 @@ export const bogGateway: PaymentGateway = {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
-        "Accept-Language": input.locale,
+        "Accept-Language": input.locale === "ka" ? "ka" : "en",
       },
       body: JSON.stringify(body),
       cache: "no-store",
+      signal: AbortSignal.timeout(12000),
     });
 
     if (!res.ok) {
-      throw new Error(`BOG create order failed: ${res.status} ${await res.text()}`);
+      throw new Error(`BOG create order failed: ${res.status}`);
     }
 
     const data = (await res.json()) as {
@@ -109,20 +111,26 @@ export const bogGateway: PaymentGateway = {
     return { redirectUrl, providerPaymentId: data.id };
   },
 
-  async getStatus(providerPaymentId: string): Promise<PaymentStatus> {
+  async getStatus(providerPaymentId: string, reference: string, expected): Promise<PaymentStatus> {
     const token = await getAccessToken();
     const res = await fetch(
       `${apiBase()}/payments/v1/receipt/${encodeURIComponent(providerPaymentId)}`,
       {
         headers: { Authorization: `Bearer ${token}` },
         cache: "no-store",
+      signal: AbortSignal.timeout(12000),
       },
     );
-    if (!res.ok) return "pending";
+    if (!res.ok) throw new Error(`Payment status unavailable (${res.status})`);
 
     const data = (await res.json()) as {
+      order_id?: string;
+      external_order_id?: string;
+      purchase_units?: { request_amount?: number | string; currency_code?: string };
       order_status?: { key?: string };
     };
+    if (data.order_id !== providerPaymentId || data.external_order_id !== reference) throw new Error("BOG receipt identity mismatch");
+    if (expected && (Math.round(Number(data.purchase_units?.request_amount) * 100) !== Math.round(expected.amount * 100) || data.purchase_units?.currency_code !== expected.currency)) throw new Error("BOG receipt amount mismatch");
     const key = (data.order_status?.key || "").toLowerCase();
     if (["completed", "success", "captured", "paid"].includes(key)) return "paid";
     if (["rejected", "failed", "error", "expired", "cancelled"].includes(key))

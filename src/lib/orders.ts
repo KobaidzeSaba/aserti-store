@@ -2,8 +2,8 @@ import type { Locale } from "@/i18n/config";
 import { prisma } from "./prisma";
 import { localizeProduct } from "./products";
 import { shippingFor } from "./money";
-import { createShipment } from "./shipping/quickshipper";
-import { sendOrderConfirmationEmail, sendOrderShippedEmail } from "./email";
+import { runOrderJobs } from "./integrationJobs";
+import { randomInt } from "node:crypto";
 import { MAX_CART_QUANTITY } from "./cart";
 
 export type CheckoutItemInput = {
@@ -28,7 +28,7 @@ const REF_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 export function generateReference(): string {
   let s = "";
   for (let i = 0; i < 6; i++) {
-    s += REF_ALPHABET[Math.floor(Math.random() * REF_ALPHABET.length)];
+    s += REF_ALPHABET[randomInt(REF_ALPHABET.length)];
   }
   return `AS-${s}`;
 }
@@ -43,7 +43,7 @@ export async function createOrder(params: {
   locale: Locale;
 }) {
   const { items, customer, locale } = params;
-  if (!items.length) throw new Error("Cart is empty.");
+  if (!items.length || items.length > 50) throw new Error("Cart is empty.");
 
   const slugs = Array.from(new Set(items.map((i) => i.slug)));
   const products = await prisma.product.findMany({
@@ -59,6 +59,8 @@ export async function createOrder(params: {
       Math.min(MAX_CART_QUANTITY, Math.floor(item.quantity)),
     );
     const localized = localizeProduct(product, locale);
+    if (localized.hasSizes && !["S", "L"].includes(item.size || "")) throw new Error("Choose a valid size");
+    if (!localized.hasSizes && item.size) throw new Error("This product does not accept a size");
     const unitPrice = product.price;
     return {
       productId: product.id,
@@ -120,121 +122,31 @@ export async function createOrder(params: {
   throw new Error("Could not generate a unique order reference.");
 }
 
-/**
- * Mark an order paid and create the Quickshipper shipment (idempotent).
- */
-export async function markOrderPaid(
-  reference: string,
-  providerPaymentId?: string,
-) {
-  const order = await prisma.order.findUnique({
-    where: { reference },
-    include: { items: { include: { product: true } } },
+/** Payment settlement and durable work creation happen in the same transaction. */
+export async function markOrderPaid(reference: string, providerPaymentId?: string) {
+  await prisma.$transaction(async (tx) => {
+    const changed = await tx.order.updateMany({ where: { reference, status: { in: ["pending", "failed"] } }, data: { status: "paid", paidAt: new Date(), ...(providerPaymentId ? { paymentId: providerPaymentId } : {}) } });
+    if (!changed.count) return;
+    const order = await tx.order.findUniqueOrThrow({ where: { reference } });
+    if (order.paymentProvider !== "sandbox") {
+      for (const kind of ["shipment", "confirmation"]) await tx.integrationJob.upsert({ where: { reference_kind: { reference, kind } }, create: { reference, kind }, update: {} });
+    }
   });
-  if (!order) throw new Error(`Order not found: ${reference}`);
-  if (order.status === "paid" || order.status === "shipped") return order;
-
-  const totalWeight = order.items.reduce(
-    (s, it) => s + it.product.weight * it.quantity,
-    0,
-  );
-
-  const shipment = await createShipment({
-    reference: order.reference,
-    recipientName: order.customerName,
-    phone: order.phone,
-    city: order.city,
-    address: order.address,
-    latitude: order.latitude,
-    longitude: order.longitude,
-    note: order.note,
-    declaredValue: order.total,
-    weightGrams: totalWeight,
-  });
-
-  const updated = await prisma.order.update({
-    where: { reference },
-    data: {
-      status: "paid",
-      paidAt: new Date(),
-      paymentId: providerPaymentId ?? order.paymentId,
-      shipmentId: shipment.shipmentId,
-      trackingCode: shipment.trackingCode,
-    },
-  });
-
-  // Send the confirmation email (best-effort — never blocks fulfilment).
-  await sendOrderConfirmationEmail(
-    {
-      reference: updated.reference,
-      email: updated.email,
-      customerName: updated.customerName,
-      city: updated.city,
-      address: updated.address,
-      subtotal: updated.subtotal,
-      shippingCost: updated.shippingCost,
-      total: updated.total,
-      trackingCode: updated.trackingCode,
-      items: order.items.map((it) => ({
-        nameSnapshot: it.nameSnapshot,
-        size: it.size,
-        quantity: it.quantity,
-        lineTotal: it.lineTotal,
-      })),
-    },
-    updated.locale,
-  );
-
-  return updated;
+  // Settlement stays recorded even if a downstream integration fails.
+  await runOrderJobs(reference);
+  return prisma.order.findUniqueOrThrow({ where: { reference } });
 }
 
 export async function markOrderFailed(reference: string) {
-  const order = await prisma.order.findUnique({ where: { reference } });
-  if (!order || order.status === "paid" || order.status === "shipped")
-    return order;
-  return prisma.order.update({
-    where: { reference },
-    data: { status: "failed" },
-  });
+  await prisma.order.updateMany({ where: { reference, status: "pending" }, data: { status: "failed" } });
+  return prisma.order.findUnique({ where: { reference } });
 }
 
-/**
- * Mark a paid order as shipped and email the customer their tracking code.
- * Only a "paid" order can transition to "shipped" (idempotent).
- */
 export async function markOrderShipped(reference: string) {
-  const order = await prisma.order.findUnique({
-    where: { reference },
-    include: { items: true },
+  await prisma.$transaction(async (tx) => {
+    const changed = await tx.order.updateMany({ where: { reference, status: "paid", shipmentId: { not: null }, paymentProvider: { not: "sandbox" } }, data: { status: "shipped" } });
+    if (changed.count) await tx.integrationJob.upsert({ where: { reference_kind: { reference, kind: "shipped-email" } }, create: { reference, kind: "shipped-email" }, update: {} });
   });
-  if (!order) throw new Error(`Order not found: ${reference}`);
-  if (order.status !== "paid") return order; // must be paid; ignore otherwise
-
-  const updated = await prisma.order.update({
-    where: { reference },
-    data: { status: "shipped" },
-  });
-
-  await sendOrderShippedEmail(
-    {
-      reference: updated.reference,
-      email: updated.email,
-      customerName: updated.customerName,
-      city: updated.city,
-      address: updated.address,
-      subtotal: updated.subtotal,
-      shippingCost: updated.shippingCost,
-      total: updated.total,
-      trackingCode: updated.trackingCode,
-      items: order.items.map((it) => ({
-        nameSnapshot: it.nameSnapshot,
-        size: it.size,
-        quantity: it.quantity,
-        lineTotal: it.lineTotal,
-      })),
-    },
-    updated.locale,
-  );
-
-  return updated;
+  await runOrderJobs(reference);
+  return prisma.order.findUniqueOrThrow({ where: { reference } });
 }

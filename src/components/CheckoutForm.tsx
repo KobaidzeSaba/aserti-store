@@ -14,14 +14,16 @@ export function CheckoutForm({
   locale,
   dict,
   mock,
+  available,
 }: {
   locale: Locale;
   dict: Dictionary;
   /** Whether each provider will use the in-app sandbox mock (no real creds). */
   mock: Record<Provider, boolean>;
+  available: Record<Provider, boolean>;
 }) {
   const { items, subtotal, rememberCheckout, ready } = useCart();
-  const [provider, setProvider] = useState<Provider>("flitt");
+  const [provider, setProvider] = useState<Provider>(available.flitt ? "flitt" : "bog");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({
@@ -240,6 +242,7 @@ export function CheckoutForm({
                 <input
                   type="radio"
                   name="provider"
+                  disabled={!available[p.key]}
                   checked={provider === p.key}
                   onChange={() => setProvider(p.key)}
                   className="accent-champagne"
@@ -248,6 +251,7 @@ export function CheckoutForm({
               </label>
             ))}
           </div>
+          {!available.flitt && !available.bog && <p role="status" className="mt-4 text-sm">{locale === "ka" ? "ონლაინ გადახდა დროებით მიუწვდომელია." : locale === "ru" ? "Онлайн-оплата временно недоступна." : "Online payment is temporarily unavailable."}</p>}
           {mock[provider] && (
             <p className="mt-4 rounded-sm border border-champagne/30 bg-champagne/5 px-4 py-3 text-xs text-champagne">
               {dict.checkout.sandboxNote}
@@ -304,7 +308,7 @@ export function CheckoutForm({
 
         <button
           type="submit"
-          disabled={submitting}
+          disabled={submitting || !available[provider]}
           className="btn-gold mt-6 w-full"
         >
           {submitting

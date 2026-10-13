@@ -30,6 +30,7 @@ function sanitizeConnectionString(url?: string): string | undefined {
 }
 
 function createPrisma(): PrismaClient {
+  if (process.env.DATABASE_TRANSPORT === "direct") return new PrismaClient();
   const connectionString = sanitizeConnectionString(process.env.DATABASE_URL);
   const pool = new Pool({ connectionString });
   const adapter = new PrismaNeon(pool);
