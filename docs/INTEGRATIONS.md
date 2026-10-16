@@ -81,3 +81,19 @@ References: [Flitt signatures](https://docs.flitt.com/api/building-signature/),
 [BOG receipt](https://api.bog.ge/docs/en/payments/standard-process/get-payment-details),
 [BOG callback](https://api.bog.ge/docs/en/payments/standard-process/callback),
 [Quickshipper OpenAPI](https://delivery.quickshipper.app/swagger/v1/swagger.json).
+
+## Hosted Flitt testing (2026-10-13)
+
+Production is now configured with `PAYMENTS_MODE=test`, Flitt's public test
+merchant ID `1549901` and purchase key `test`. This opens the real Flitt hosted
+checkout in the provider's test mode. BOG remains unavailable pending its own
+credentials. Shipping stays manual and email stays disabled.
+
+Every new provider-test order persists `isTest=true`; these orders never create
+shipment/email jobs and are excluded from paid revenue. Checkout and confirmation
+pages show a test notice. Live mode rejects the shared test merchant. Only use
+fictitious customer details and Flitt's published test cards with this merchant.
+
+See [Flitt test data](https://docs.flitt.com/api/testing/). For example, the
+non-3DS approval test card is `4444555511116666`, with a future expiry and any CVV.
+Do not enter a real card. The local `sandbox` mode remains a separate in-app mock.

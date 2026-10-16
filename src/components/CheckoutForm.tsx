@@ -301,7 +301,7 @@ export function CheckoutForm({
         </dl>
 
         {error && (
-          <p className="mt-4 rounded-sm border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-700">
+          <p className="mt-4 rounded-sm border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-400">
             {error}
           </p>
         )}

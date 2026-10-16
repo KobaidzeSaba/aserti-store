@@ -65,7 +65,7 @@ export function SandboxPay({
       </p>
 
       {error && (
-        <p role="alert" className="mt-5 text-sm text-red-700">
+        <p role="alert" className="mt-5 text-sm text-red-400">
           {dict.common.error}
         </p>
       )}

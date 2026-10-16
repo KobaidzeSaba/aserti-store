@@ -79,3 +79,13 @@ test('email transport errors propagate to the durable job instead of silently su
   t.mock.method(nodemailer, 'createTransport', () => ({ sendMail: async () => { throw new Error('Connection failed'); } }));
   await assert.rejects(sendOrderConfirmationEmail(order, 'en'), /delivery failed/);
 });
+
+test('provider test mode enables only the public Flitt test merchant and live mode rejects it', () => {
+  Object.assign(process.env, { PAYMENTS_MODE: 'test', FLITT_MERCHANT_ID: '1549901', FLITT_SECRET_KEY: 'test', BOG_CLIENT_ID: 'configured', BOG_CLIENT_SECRET: 'configured' });
+  assert.equal(getGateway('flitt').provider, 'flitt');
+  assert.equal(providerAvailable('bog'), false);
+  process.env.PAYMENTS_MODE = 'live';
+  assert.throws(() => getGateway('flitt'));
+  process.env.PAYMENTS_MODE = 'test'; process.env.FLITT_MERCHANT_ID = '123';
+  assert.throws(() => getGateway('flitt'));
+});

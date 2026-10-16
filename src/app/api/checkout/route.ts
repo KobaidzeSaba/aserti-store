@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { paymentMode } from "@/lib/integrationConfig";
 import { isLocale } from "@/i18n/config";
 import { prisma } from "@/lib/prisma";
 import { createOrder } from "@/lib/orders";
@@ -67,7 +68,7 @@ export async function POST(req: NextRequest) {
     const returnUrl = `${base}/${locale}/order/${order.reference}`;
     const callbackUrl = `${base}/api/payments/${provider}/callback?ref=${order.reference}`;
 
-    await prisma.order.update({ where: { id: order.id }, data: { paymentProvider: gateway.provider } });
+    await prisma.order.update({ where: { id: order.id }, data: { paymentProvider: gateway.provider, isTest: paymentMode() !== "live" } });
 
     const payment = await gateway.createPayment({
       orderId: order.id,

@@ -46,7 +46,7 @@ export default function AdminLoginPage({
         </div>
 
         {hasError && (
-          <p className="rounded-sm border border-red-500/40 bg-red-500/10 px-4 py-2.5 text-sm text-red-700">
+          <p className="rounded-sm border border-red-500/40 bg-red-500/10 px-4 py-2.5 text-sm text-red-400">
             Invalid username or password.
           </p>
         )}

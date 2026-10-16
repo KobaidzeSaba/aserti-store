@@ -1,3 +1,4 @@
+import { paymentMode } from "@/lib/integrationConfig";
 import type { Locale } from "@/i18n/config";
 import { getDictionary } from "@/i18n/dictionaries";
 import { isMockProvider, providerAvailable } from "@/lib/payments";
@@ -18,6 +19,7 @@ export default function CheckoutPage({
       <h1 className="heading-serif text-4xl text-silver">
         {dict.checkout.title}
       </h1>
+      {paymentMode() === "test" && <p role="status" className="mt-6 border p-4">{params.locale === "ka" ? "ტესტური გადახდა — გამოიყენეთ მხოლოდ ტესტური ბარათი. შეკვეთა არ გაიგზავნება." : params.locale === "ru" ? "Тестовая оплата — используйте только тестовую карту. Заказ не будет отправлен." : "Test checkout — use test card details only. No real charge or shipment."}</p>}
       {isCatalogPreview() && (
         <p
           className="mt-6 border-y border-silver-muted/20 py-4 text-sm"

@@ -5,20 +5,20 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // Neutral exhibition palette. Legacy token names also theme checkout/admin.
+        // Black, silver and graphite. Shared tokens also theme checkout and admin.
         ink: {
-          DEFAULT: "#f3f2ed",
-          soft: "#eeede7",
-          muted: "#e4e3dc",
+          DEFAULT: "#000000",
+          soft: "#111111",
+          muted: "#1c1c1c",
         },
         champagne: {
-          DEFAULT: "#292923",
-          light: "#292923",
-          dark: "#46463f",
+          DEFAULT: "#f0f0ec",
+          light: "#f0f0ec",
+          dark: "#c7c7c2",
         },
         silver: {
-          DEFAULT: "#292923",
-          muted: "#727269",
+          DEFAULT: "#f0f0ec",
+          muted: "#a0a09b",
         },
       },
       fontFamily: {

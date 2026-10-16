@@ -100,3 +100,19 @@ Prompt:
   cart and checkout pages; unknown products/categories return 404.
 - Preview checkout returns 503. No database-backed order, real payment, courier
   shipment or outbound email was created during verification.
+
+## Black minimal refresh — 2026-10-16
+
+Restored the monochrome direction from commit `1e9e4fe`: black canvas, silver-white
+type, graphite surfaces and fine gray rules. Current routes, editorial content,
+product photography and checkout behavior are preserved. Removed the light-theme
+multiply blend from the transparent hero/contact object so silver remains visible
+on black. Updated the favicon, social card, placeholders, form controls, payment
+errors and status colors to match.
+
+UX refinements: direct shop action on the homepage; price and a localized purchase
+shortcut above product galleries; 44px material/menu controls; visible focus rings;
+mobile menu returns focus on Escape and closes on outside interaction. Corrected
+the small-screen Stone/Mirror title overflow and wide-screen header gutters.
+Pending Flitt hosted-test configuration and order isolation from the previous turn
+remain intact. Test payments do not dispatch shipments or customer emails.

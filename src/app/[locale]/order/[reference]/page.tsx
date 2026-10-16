@@ -58,13 +58,14 @@ export default async function OrderPage({
       : dict.confirmation.pending;
 
   const statusColor = paid
-    ? "text-emerald-700 border-emerald-500/40 bg-emerald-500/10"
+    ? "text-emerald-400 border-emerald-500/40 bg-emerald-500/10"
     : failed
-      ? "text-red-700 border-red-500/40 bg-red-500/10"
+      ? "text-red-400 border-red-500/40 bg-red-500/10"
       : "text-champagne border-champagne/40 bg-champagne/10";
 
   return (
     <div className="container-x max-w-2xl py-20">
+      {order.isTest && <p role="status" className="mb-6 border p-4">{locale === "ka" ? "ტესტური შეკვეთა — რეალური გადახდისა და მიწოდების გარეშე." : locale === "ru" ? "Тестовый заказ — без реальной оплаты и доставки." : "Test order — no real payment or delivery."}</p>}
       {paid && <PaidOrderCartSync reference={order.reference} />}
       <div className="text-center">
         <span
@@ -94,7 +95,7 @@ export default async function OrderPage({
         </div>
       )}
 
-      {paid && (
+      {paid && !order.isTest && (
         <div className="mt-8 rounded-sm border border-silver-muted/15 bg-ink-soft p-6 text-center">
           <p className="text-silver-muted">{dict.confirmation.weWillShip}</p>
           {order.trackingCode && (

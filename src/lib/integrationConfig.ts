@@ -3,9 +3,9 @@ export function configured(name: string): boolean {
   const value = process.env[name]?.trim();
   return Boolean(value && !/^(\[SENSITIVE\]|change[-_ ]?me|your[-_ ]|placeholder)/i.test(value));
 }
-export function paymentMode(): 'sandbox' | 'live' | 'disabled' {
+export function paymentMode(): 'sandbox' | 'test' | 'live' | 'disabled' {
   const mode = process.env.PAYMENTS_MODE;
-  return mode === 'sandbox' || mode === 'live' ? mode : 'disabled';
+  return mode === 'sandbox' || mode === 'test' || mode === 'live' ? mode : 'disabled';
 }
 export function integrationStatus() {
   return {
@@ -20,4 +20,8 @@ export function integrationStatus() {
     contact: configured('NEXT_PUBLIC_CONTACT_EMAIL'),
     instagram: configured('NEXT_PUBLIC_INSTAGRAM_URL'),
   };
+}
+
+export function flittTestMerchant(): boolean {
+  return process.env.FLITT_MERCHANT_ID === '1549901' && process.env.FLITT_SECRET_KEY === 'test';
 }

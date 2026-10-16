@@ -126,6 +126,10 @@ export default async function ProductPage({
             {product.gem ? ` / ${product.gem}` : ""}
           </p>
         </div>
+        <div className="object-purchase-link">
+          <span>{formatPrice(product.price, locale)}</span>
+          <a href="#purchase">{t.purchase} <span aria-hidden>↓</span></a>
+        </div>
       </div>
       <ProductGallery
         category={product.category}
@@ -154,7 +158,7 @@ export default async function ProductPage({
             ))}
           </dl>
         </div>
-        <div className="object-buy">
+        <div className="object-buy" id="purchase" tabIndex={-1}>
           <div className="flex items-baseline justify-between gap-4">
             <p className="object-price">{formatPrice(product.price, locale)}</p>
             <span className="micro muted">{dict.product.inStock}</span>

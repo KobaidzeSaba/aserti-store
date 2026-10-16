@@ -1,5 +1,6 @@
 "use client";
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 import type { Locale } from "@/i18n/config";
 import { editorial } from "@/lib/editorial";
@@ -36,9 +37,14 @@ export function ExhibitionHero({ locale }: { locale: Locale }) {
         <span className="muted">STONE / MIRROR</span>
       </div>
       <div className="hero-bottom micro">
-        <a href="#material">
-          {t.explore} <span aria-hidden>↓</span>
-        </a>
+        <div className="hero-actions">
+          <Link href={`/${locale}/shop`} className="hero-shop-link">
+            {t.objects} <span aria-hidden>↗</span>
+          </Link>
+          <a href="#material" className="hero-explore-link">
+            {t.explore} <span aria-hidden>↓</span>
+          </a>
+        </div>
         <button
           onClick={() => setPaused(!paused)}
           aria-label={paused ? t.play : t.pause}
@@ -46,7 +52,7 @@ export function ExhibitionHero({ locale }: { locale: Locale }) {
         >
           <span aria-hidden>{paused ? "▷" : "Ⅱ"}</span> {t.movement}
         </button>
-        <span className="hero-page-marker">001 — ∞</span>
+
       </div>
     </section>
   );

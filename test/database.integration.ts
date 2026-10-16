@@ -41,3 +41,14 @@ test('duplicate callbacks make exactly one courier request and retain real track
   assert.equal(requests, 1); assert.equal(settled.shipmentId, '123'); assert.equal(settled.trackingCode, 'https://example.invalid/track/123');
   process.env.SHIPPING_MODE = 'manual';
 });
+
+test('provider test orders never create fulfillment jobs even with live side effects enabled', async () => {
+  const created = await order('flitt');
+  await prisma.order.update({ where: { reference: created.reference }, data: { isTest: true } });
+  process.env.SHIPPING_MODE = 'live'; process.env.EMAIL_MODE = 'live';
+  await markOrderPaid(created.reference);
+  assert.equal(await prisma.integrationJob.count({ where: { reference: created.reference } }), 0);
+  const settled = await prisma.order.findUniqueOrThrow({ where: { reference: created.reference } });
+  assert.equal(settled.status, 'paid'); assert.equal(settled.shipmentId, null);
+  process.env.SHIPPING_MODE = 'manual'; process.env.EMAIL_MODE = 'disabled';
+});

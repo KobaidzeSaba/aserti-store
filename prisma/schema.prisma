@@ -67,6 +67,7 @@ model Order {
   longitude     Float?
 
   // Payment
+  isTest          Boolean @default(false)
   paymentProvider String? // "tbc" | "bog" | "sandbox"
   paymentId       String? // provider-side payment/order id
   paidAt          DateTime?

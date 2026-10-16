@@ -21,7 +21,7 @@ export function ProductImage({
       className={className}
       style={{
         background:
-          "radial-gradient(120% 120% at 50% 20%, #f6f5f0 0%, #ddddd5 70%)",
+          "radial-gradient(120% 120% at 50% 20%, #222222 0%, #101010 70%)",
         ...style,
       }}
     >

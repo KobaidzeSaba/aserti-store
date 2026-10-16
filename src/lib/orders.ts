@@ -128,7 +128,7 @@ export async function markOrderPaid(reference: string, providerPaymentId?: strin
     const changed = await tx.order.updateMany({ where: { reference, status: { in: ["pending", "failed"] } }, data: { status: "paid", paidAt: new Date(), ...(providerPaymentId ? { paymentId: providerPaymentId } : {}) } });
     if (!changed.count) return;
     const order = await tx.order.findUniqueOrThrow({ where: { reference } });
-    if (order.paymentProvider !== "sandbox") {
+    if (!order.isTest && order.paymentProvider !== "sandbox") {
       for (const kind of ["shipment", "confirmation"]) await tx.integrationJob.upsert({ where: { reference_kind: { reference, kind } }, create: { reference, kind }, update: {} });
     }
   });
@@ -144,7 +144,7 @@ export async function markOrderFailed(reference: string) {
 
 export async function markOrderShipped(reference: string) {
   await prisma.$transaction(async (tx) => {
-    const changed = await tx.order.updateMany({ where: { reference, status: "paid", shipmentId: { not: null }, paymentProvider: { not: "sandbox" } }, data: { status: "shipped" } });
+    const changed = await tx.order.updateMany({ where: { reference, status: "paid", isTest: false, shipmentId: { not: null }, paymentProvider: { not: "sandbox" } }, data: { status: "shipped" } });
     if (changed.count) await tx.integrationJob.upsert({ where: { reference_kind: { reference, kind: "shipped-email" } }, create: { reference, kind: "shipped-email" }, update: {} });
   });
   await runOrderJobs(reference);

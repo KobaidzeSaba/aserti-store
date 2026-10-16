@@ -5,7 +5,7 @@ import type { PaymentGateway, PaymentProvider } from "./types";
 
 export * from "./types";
 import { PaymentConfigError } from "./types";
-import { integrationStatus, paymentMode } from "../integrationConfig";
+import { integrationStatus, paymentMode, flittTestMerchant } from "../integrationConfig";
 
 /** True when a provider has real API credentials configured. */
 export function hasCreds(provider: PaymentProvider): boolean {
@@ -16,7 +16,8 @@ export function hasCreds(provider: PaymentProvider): boolean {
 /** Explicit sandbox only; unavailable live providers fail closed. */
 export function getGateway(requested: PaymentProvider): PaymentGateway {
   if (paymentMode() === "sandbox") return sandboxGateway;
-  if (paymentMode() !== "live" || !hasCreds(requested)) {
+  if (paymentMode() === "test" && requested === "flitt" && flittTestMerchant()) return flittGateway;
+  if (paymentMode() !== "live" || !hasCreds(requested) || (requested === "flitt" && flittTestMerchant())) {
     throw new PaymentConfigError("Payment provider unavailable");
   }
   return requested === "flitt" ? flittGateway : bogGateway;
@@ -33,5 +34,5 @@ export function getStoredGateway(provider: string): PaymentGateway {
   return provider === "bog" ? bogGateway : flittGateway;
 }
 export function providerAvailable(provider: PaymentProvider): boolean {
-  return paymentMode() === "sandbox" || (paymentMode() === "live" && hasCreds(provider));
+  try { getGateway(provider); return true; } catch { return false; }
 }

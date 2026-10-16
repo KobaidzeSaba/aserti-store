@@ -5,7 +5,7 @@ import { sendOrderConfirmationEmail, sendOrderShippedEmail } from './email';
 
 export async function runOrderJobs(reference: string) {
   const order = await prisma.order.findUnique({ where: { reference }, include: { items: { include: { product: true } } } });
-  if (!order || !['paid', 'shipped'].includes(order.status) || order.paymentProvider === 'sandbox') return;
+  if (!order || !['paid', 'shipped'].includes(order.status) || order.isTest || order.paymentProvider === 'sandbox') return;
   const jobs = await prisma.integrationJob.findMany({ where: { reference, status: 'pending' }, orderBy: { createdAt: 'asc' } });
   for (const job of jobs) {
     const claim = await prisma.integrationJob.updateMany({ where: { id: job.id, status: 'pending' }, data: { status: 'processing', attempts: { increment: 1 }, lastError: null } });

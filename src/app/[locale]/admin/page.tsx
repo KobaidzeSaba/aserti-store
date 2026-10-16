@@ -10,10 +10,10 @@ import { integrationStatus } from "@/lib/integrationConfig";
 export const dynamic = "force-dynamic";
 
 const STATUS_STYLES: Record<string, string> = {
-  paid: "text-emerald-700",
+  paid: "text-emerald-400",
   shipped: "text-emerald-300",
   pending: "text-champagne",
-  failed: "text-red-700",
+  failed: "text-red-400",
   cancelled: "text-silver-muted",
 };
 
@@ -33,10 +33,10 @@ export default async function AdminPage({
   const integrations = integrationStatus();
   const jobs = await prisma.integrationJob.findMany({ where: { status: { not: "succeeded" } }, orderBy: { createdAt: "asc" }, take: 100 });
   const paidCount = orders.filter(
-    (o) => o.status === "paid" || o.status === "shipped",
+    (o) => !o.isTest && (o.status === "paid" || o.status === "shipped"),
   ).length;
   const revenue = orders
-    .filter((o) => o.status === "paid" || o.status === "shipped")
+    .filter((o) => !o.isTest && (o.status === "paid" || o.status === "shipped"))
     .reduce((s, o) => s + o.total, 0);
 
   return (
@@ -113,7 +113,7 @@ export default async function AdminPage({
           <tbody className="divide-y divide-silver-muted/10">
             {orders.map((o) => (
               <tr key={o.id} className="text-silver">
-                <td className="px-4 py-3 font-medium">{o.reference}</td>
+                <td className="px-4 py-3 font-medium">{o.reference}{o.isTest && <span className="ml-2">TEST</span>}</td>
                 <td className="px-4 py-3 text-silver-muted">
                   {new Date(o.createdAt).toLocaleDateString()}
                 </td>
@@ -141,7 +141,7 @@ export default async function AdminPage({
                   {o.trackingCode || "—"}
                 </td>
                 <td className="px-4 py-3">
-                  {o.status === "paid" && o.shipmentId && o.paymentProvider !== "sandbox" ? (
+                  {!o.isTest && o.status === "paid" && o.shipmentId && o.paymentProvider !== "sandbox" ? (
                     <form action={markShipped}>
                       <input
                         type="hidden"
